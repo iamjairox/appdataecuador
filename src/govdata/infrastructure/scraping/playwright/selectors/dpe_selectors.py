@@ -26,3 +26,13 @@ RUTA_PUBLICACIONES_MES = "/backend/v1/transparency/transparency/active/public"
 # type=A corresponde a "Transparencia Activa" (verificado: A/F/C se
 # corresponden con Activa/Focalizada/Colaborativa en la UI).
 TIPO_TRANSPARENCIA_ACTIVA = "A"
+
+# Prefijo real de descarga de archivos. El `url_download` que devuelve
+# `RUTA_PUBLICACIONES_MES` es una ruta `/media/...`, pero servida tal cual
+# el portal responde 200 con el `index.html` de la SPA (text/html, 1489 B),
+# nunca con el archivo. La propia SPA descarga desde
+# `/backend/v1/transparency/media/...` (verificado 2026-09-27 en el trafico
+# de red del navegador y con peticiones directas, tanto para rutas
+# `/media/transparencia/...` como `/media/publications/...`).
+PREFIJO_DESCARGA_MEDIA = "/backend/v1/transparency"
+RAIZ_RUTAS_MEDIA = "/media/"

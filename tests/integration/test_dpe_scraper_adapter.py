@@ -76,8 +76,12 @@ class TestListarPublicacionesMes:
         )
         assert len(directorio.archivos) == 3
         conjunto = next(a for a in directorio.archivos if a.descripcion == "Conjunto de datos")
-        assert conjunto.url_descarga.startswith(servidor_fixtures_dpe.url_origen)
         assert conjunto.url_descarga.endswith(".csv")
+        # Las rutas `/media/...` se sirven via el prefijo del backend (la ruta
+        # directa devuelve el HTML de la SPA en el portal real).
+        assert conjunto.url_descarga.startswith(
+            f"{servidor_fixtures_dpe.url_origen}/backend/v1/transparency/media/"
+        )
 
     def test_publicacion_sin_item_directorio(self, adapter, servidor_fixtures_dpe) -> None:
         url_entidad = f"{servidor_fixtures_dpe.url_origen}/entidades/1358"

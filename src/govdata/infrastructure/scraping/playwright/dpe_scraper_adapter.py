@@ -190,4 +190,8 @@ class DpeScraperAdapter(PortalScraperPort):
     def _url_absoluta(self, ruta: str) -> str:
         if ruta.startswith(("http://", "https://")):
             return ruta
+        if ruta.startswith(dpe_selectors.RAIZ_RUTAS_MEDIA):
+            # Ver `dpe_selectors.PREFIJO_DESCARGA_MEDIA`: `/media/...` directo
+            # devuelve el HTML de la SPA, no el archivo.
+            return f"{self._url_origen}{dpe_selectors.PREFIJO_DESCARGA_MEDIA}{ruta}"
         return f"{self._url_origen}{ruta}"
