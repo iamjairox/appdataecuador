@@ -23,3 +23,11 @@ class FilaExtraidaDTO:
     correo: str | None = None
     telefono: str | None = None
     cedula: str | None = None
+    nombre_completo_original: str | None = None
+    """Texto tal como vino en una columna combinada ("Apellidos y
+    Nombres"); `None` si la fuente trae nombres y apellidos separados."""
+    orden_nombre: str | None = None
+    """`OrdenNombre.value` deducido del encabezado (solo columna combinada)."""
+    confianza_segmentacion: str | None = None
+    """`ConfianzaSegmentacion.value` de la division nombres/apellidos."""
+    ciudad: str | None = None

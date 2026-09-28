@@ -95,7 +95,9 @@ def _generar_csv() -> None:
     ruta = FIXTURES / "directorio.csv"
     with ruta.open("w", newline="", encoding="utf-8") as archivo:
         escritor = csv.writer(archivo, delimiter=";")
-        escritor.writerow(["Apellidos y Nombres", "Puesto", "Departamento", "Email", "Extension"])
+        # Los datos de `_FILAS_DIRECTORIO` vienen "Nombre Apellido": el encabezado
+        # debe decirlo, porque el orden del nombre se deduce del encabezado.
+        escritor.writerow(["Nombres y Apellidos", "Puesto", "Departamento", "Email", "Extension"])
         for fila in _FILAS_DIRECTORIO[1:]:
             escritor.writerow(fila)
 

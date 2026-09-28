@@ -20,6 +20,10 @@ from govdata.application.dto.fila_extraida_dto import FilaExtraidaDTO
 from govdata.application.dto.tabla_extraida_dto import TablaExtraidaDTO
 from govdata.domain.rules.normalizacion import normalizar_texto
 from govdata.domain.rules.reglas_configurables import ReglasNormalizacion
+from govdata.domain.rules.segmentador_nombre import (
+    detectar_orden_por_encabezado,
+    segmentar_nombre_completo,
+)
 
 UMBRAL_MATCH_ENCABEZADO_DEFECTO = 80.0
 
@@ -63,10 +67,11 @@ def dividir_nombre_completo(nombre_completo: str) -> tuple[str, str]:
     """Heuristica de particion de un nombre combinado en (nombres, apellidos).
 
     Divide la lista de palabras a la mitad -- NO intenta adivinar si la
-    convencion de origen es "Nombres Apellidos" o "Apellidos Nombres"
-    (ambiguo sin mas contexto; ver decision documentada en el informe del
-    modulo). Queda como mejora futura reemplazarla por un segmentador de
-    nombres mas inteligente.
+    convencion de origen es "Nombres Apellidos" o "Apellidos Nombres".
+    `normalizar_tabla` ya no la usa directamente: delega en
+    `segmentador_nombre.segmentar_nombre_completo`, que deduce el orden del
+    encabezado y solo recurre a esta division (con confianza BAJA) cuando
+    el orden es desconocido.
     """
     palabras = nombre_completo.split()
     if len(palabras) <= 1:
@@ -87,15 +92,25 @@ def normalizar_tabla(tabla: TablaExtraidaDTO, reglas: ReglasNormalizacion) -> li
     filas_normalizadas: list[FilaExtraidaDTO] = []
     for fila_cruda in tabla.filas:
         valores: dict[str, str] = {}
+        encabezado_de: dict[str, str] = {}
         for encabezado, campo in mapeo.items():
             valor = (fila_cruda.get(encabezado) or "").strip()
-            if valor:
-                valores.setdefault(campo, valor)
+            if valor and campo not in valores:
+                valores[campo] = valor
+                encabezado_de[campo] = encabezado
 
         nombres = valores.get("nombres", "")
         apellidos = valores.get("apellidos", "")
+        nombre_completo_original: str | None = None
+        orden: str | None = None
+        confianza: str | None = None
         if not nombres and not apellidos and _CAMPO_NOMBRE_COMPLETO in valores:
-            nombres, apellidos = dividir_nombre_completo(valores[_CAMPO_NOMBRE_COMPLETO])
+            nombre_completo_original = valores[_CAMPO_NOMBRE_COMPLETO]
+            segmentacion = segmentar_nombre_completo(
+                nombre_completo_original, detectar_orden_por_encabezado(encabezado_de[_CAMPO_NOMBRE_COMPLETO])
+            )
+            nombres, apellidos = segmentacion.nombres, segmentacion.apellidos
+            orden, confianza = segmentacion.orden.value, segmentacion.confianza.value
 
         if not nombres and not apellidos:
             continue
@@ -108,6 +123,10 @@ def normalizar_tabla(tabla: TablaExtraidaDTO, reglas: ReglasNormalizacion) -> li
                 dependencia=valores.get("dependencia", ""),
                 correo=valores.get("correo"),
                 telefono=valores.get("telefono"),
+                nombre_completo_original=nombre_completo_original,
+                orden_nombre=orden,
+                confianza_segmentacion=confianza,
+                ciudad=valores.get("ciudad"),
             )
         )
     return filas_normalizadas

@@ -57,6 +57,10 @@ campos:
     - "Email"
     - "Mail"
     - "Correo Institucional"
+    # Plantilla estandar del numeral 2 DPE (verificado 2026-09-27): sin
+    # este sinonimo el matching difuso no alcanza el umbral y el correo
+    # institucional se perdia en todos los archivos.
+    - "Correo electronico institucional"
 
   telefono:
     - "Telefono"
@@ -64,3 +68,9 @@ campos:
     - "Celular"
     - "Numero de Contacto"
     - "Extension"
+    # Plantilla estandar del numeral 2 DPE (mismo motivo que el correo).
+    - "Telefono institucional"
+
+  ciudad:
+    - "Ciudad"
+    - "Ciudad en la que labora"

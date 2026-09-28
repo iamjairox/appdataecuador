@@ -95,7 +95,7 @@ class TestCsvReal:
         assert resultado.estado == EstadoParseo.EXITO
         assert resultado.tabla is not None
         assert resultado.tabla.cantidad_filas == 5
-        assert "Apellidos y Nombres" in resultado.tabla.encabezados
+        assert "Nombres y Apellidos" in resultado.tabla.encabezados
 
     def test_csv_vacio(self) -> None:
         resultado = CsvParser().extraer(str(FIXTURES / "csv_vacio.csv"))
