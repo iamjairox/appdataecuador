@@ -1,0 +1,12 @@
+# Motor de Identidad -- Submodulo 6.3 (Scoring Engine).
+# Pesos del score compuesto de resolucion de identidad. Deben sumar 1.0.
+pesos:
+  fingerprint: 0.40
+  correo: 0.25
+  nombre: 0.15
+  apellido: 0.10
+  institucion: 0.05
+  cargo: 0.05
+
+# Por debajo de este score, ni la mejor candidata se considera coincidencia.
+umbral_minimo_coincidencia: 60.0

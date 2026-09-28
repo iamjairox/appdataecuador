@@ -1,0 +1,6 @@
+# Cola de Trabajos del Orquestador -- Submodulos 9.6/9.7/9.8/9.13.
+concurrencia_maxima_defecto: 2
+timeout_segundos_por_trabajo: 300.0
+max_reintentos_defecto: 3
+backoff_base_segundos: 5.0
+politica_defecto: "consulta_rapida"

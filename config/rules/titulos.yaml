@@ -1,0 +1,17 @@
+# Normalizador Academico -- Submodulo 7.4/7.5. Sinonimo/abreviatura
+# (normalizado: mayuscula, sin tildes, sin puntuacion) -> forma canonica.
+canonicos:
+  "ING SISTEMAS": "INGENIERO EN SISTEMAS"
+  "ING": "INGENIERO"
+  "ING CIVIL": "INGENIERO CIVIL"
+  "LIC": "LICENCIADO"
+  "LCDO": "LICENCIADO"
+  "DR": "DOCTOR"
+  "DRA": "DOCTORA"
+  "AB": "ABOGADO"
+  "ABG": "ABOGADO"
+  "MSC": "MAGISTER"
+  "MG": "MAGISTER"
+  "PHD": "DOCTOR EN FILOSOFIA"
+  "TEC": "TECNOLOGO"
+  "TECN": "TECNOLOGO"

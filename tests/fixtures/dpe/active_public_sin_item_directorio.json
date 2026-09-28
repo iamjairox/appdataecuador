@@ -1,0 +1,32 @@
+[
+  {
+    "id": 780998,
+    "numeral": {"id": 113, "name": "Numeral 1.1", "description": "Estructura orgánica"},
+    "files": [
+      {
+        "id": 2678779,
+        "name": "1.Estructura orgánica funcional CONJUNTO DE DATOS.csv",
+        "description": "Conjunto de datos",
+        "url_download": "/media/transparencia/1768181660001/Numeral%201.1/2026/6/1.Conjunto%20de%20datos.csv"
+      }
+    ],
+    "month": 6,
+    "year": 2026,
+    "published": true
+  },
+  {
+    "id": 781100,
+    "numeral": {"id": 103, "name": "Numeral 3", "description": "Remuneraciones ingresos adicionales"},
+    "files": [
+      {
+        "id": 2679700,
+        "name": "3-CONJUNTO DE DATOS.csv",
+        "description": "Conjunto de datos",
+        "url_download": "/media/publications/3-CONJUNTO_DE_DATOS_ab12cd3.csv"
+      }
+    ],
+    "month": 6,
+    "year": 2026,
+    "published": true
+  }
+]

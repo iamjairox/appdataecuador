@@ -1,0 +1,66 @@
+# Motor de Reglas -- Modulo 4, Submodulo 4.2 (Normalizador Universal)
+#
+# Diccionario de sinonimos de encabezados de columna -> campo canonico.
+# Los documentos de distintas entidades nunca usan los mismos nombres de
+# columna para lo mismo; este archivo es la UNICA fuente de verdad para
+# ese mapeo -- cambiarlo NO requiere tocar codigo Python.
+#
+# `nombre_completo` agrupa los encabezados que traen nombres y apellidos
+# JUNTOS en una sola columna (el normalizador los separa con una
+# heuristica, ver `domain/rules/normalizador_universal.py`).
+#
+# El matching es difuso (RapidFuzz) sobre estos valores normalizados, asi
+# que no hace falta listar cada variacion exacta de mayusculas/tildes.
+
+campos:
+  nombres:
+    - "Nombres"
+    - "Nombre"
+    - "Primer Nombre"
+
+  apellidos:
+    - "Apellidos"
+    - "Apellido"
+    - "Primer Apellido"
+
+  nombre_completo:
+    - "Nombre Completo"
+    - "Nombres Completos"
+    - "Servidor"
+    - "Servidor Publico"
+    - "Funcionario"
+    - "Apellidos y Nombres"
+    - "Nombres y Apellidos"
+    - "Responsable"
+    - "Empleado"
+
+  cargo:
+    - "Cargo"
+    - "Puesto"
+    - "Puesto Institucional"
+    - "Denominacion del Puesto"
+    - "Denominacion"
+    - "Cargo que Ocupa"
+
+  dependencia:
+    - "Dependencia"
+    - "Area"
+    - "Unidad"
+    - "Unidad a la que pertenece"
+    - "Unidad Administrativa"
+    - "Direccion"
+    - "Departamento"
+
+  correo:
+    - "Correo"
+    - "Correo Electronico"
+    - "Email"
+    - "Mail"
+    - "Correo Institucional"
+
+  telefono:
+    - "Telefono"
+    - "Telefonos"
+    - "Celular"
+    - "Numero de Contacto"
+    - "Extension"

@@ -1,0 +1,14 @@
+# Motor de Prioridades del Orquestador -- Submodulo 9.5. Pesos de cada
+# senal y umbrales de score (0-100) para MUY_ALTA/ALTA/MEDIA/BAJA.
+peso_tiempo_sin_actualizacion: 1.0
+peso_cantidad_funcionarios: 1.0
+peso_alertas_pendientes: 2.0
+peso_cambios_recientes: 1.5
+peso_errores_anteriores: 1.0
+
+umbral_muy_alta: 80.0
+umbral_alta: 50.0
+umbral_media: 20.0
+
+horas_referencia_actualizacion: 24.0
+funcionarios_referencia: 50

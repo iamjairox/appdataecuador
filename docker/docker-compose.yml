@@ -1,0 +1,112 @@
+# GovData Intelligence Platform - stack de desarrollo/produccion
+#
+# Servicios:
+#   postgres  - persistencia principal (personas, funcionarios, historial...)
+#   redis     - backend de cola (Redis + RQ/Celery, modulo de Orquestacion)
+#   minio     - almacenamiento de documentos fuente (S3-compatible)
+#   app       - la aplicacion (pipeline CLI / scripts, no cambia con el Modulo 10)
+#   api       - Modulo 10: API REST (FastAPI + Uvicorn), MISMA imagen que `app`,
+#               solo cambia el comando -- no duplica dependencias/build.
+#
+# Uso:
+#   docker compose -f docker/docker-compose.yml --env-file ../.env.production up -d
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NOMBRE:-govdata}
+      POSTGRES_USER: ${DB_USUARIO:-govdata}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-govdata}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USUARIO:-govdata}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-govdata}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-govdata123}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      DB_HOST: postgres
+      REDIS_HOST: redis
+      MINIO_ENDPOINT: minio:9000
+    volumes:
+      - ../logs:/app/logs
+      - ../data:/app/data
+      - ../config/rules:/app/config/rules:ro
+
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    restart: unless-stopped
+    command: ["uvicorn", "govdata.infrastructure.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      DB_HOST: postgres
+      REDIS_HOST: redis
+      MINIO_ENDPOINT: minio:9000
+      APP_HOST: 0.0.0.0
+      APP_PORT: 8000
+      API_KEY: ${API_KEY:-}
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    volumes:
+      - ../logs:/app/logs
+      - ../config/rules:/app/config/rules:ro
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:

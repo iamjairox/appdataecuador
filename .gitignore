@@ -1,0 +1,27 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+logs/*.log
+.coverage
+htmlcov/
+
+# Los .env.* de este repo son plantillas de desarrollo local sin secretos
+# reales; en produccion real, sobreescribir via secretos del orquestador
+# y considerar excluir .env.production del control de versiones.
+
+# Documentos reales descargados del portal durante pruebas manuales:
+# contienen datos personales (nombres, correos, telefonos) de funcionarios.
+# Nunca versionarlos -- los tests usan fixtures sinteticos (tests/fixtures/).
+/*.csv
+/*.xlsx
+/*.pdf
+
+# Configuracion local de herramientas del editor/agente
+.claude/

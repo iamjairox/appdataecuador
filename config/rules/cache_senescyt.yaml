@@ -1,0 +1,3 @@
+# Cache por Persona -- Submodulo 7.10. Dias de vigencia antes de volver a
+# consultar SENESCYT para la misma PersonaMaster.
+dias_vigencia: 30

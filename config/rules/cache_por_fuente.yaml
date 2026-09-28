@@ -1,0 +1,13 @@
+# Cache Inteligente por Fuente -- Submodulo 6.8. Dias de vigencia antes
+# de volver a consultar la misma fuente para la misma PersonaMaster.
+fuentes:
+  dpe: 1
+  senescyt: 30
+  foro_abogados: 7
+  funcion_judicial: 1
+  sri: 15
+  contraloria: 15
+  registro_mercantil: 30
+  otra: 7
+
+dias_defecto: 7

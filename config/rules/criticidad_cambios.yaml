@@ -1,0 +1,43 @@
+# Motor de Reglas -- Modulo 5: criticidad de un cambio detectado.
+#
+# Sugerencia explicita del cliente: no todos los cambios tienen el mismo
+# valor para el negocio. CRITICO/ALTO se determinan por el CARGO
+# involucrado (fuzzy match contra este catalogo, mismo mecanismo que
+# `clasificacion_areas.yaml` del Modulo 4); MEDIO/BAJO se determinan por
+# el CAMPO que cambio, cuando el cargo no es de interes especial.
+#
+# Adaptar la plataforma a otra institucion es editar esta lista, nunca
+# tocar codigo.
+
+umbral_score_minimo: 80.0
+
+niveles:
+  critico:
+    # Cambia el Director Juridico, Procurador General o Director Financiero.
+    cargos:
+      - "Director Juridico"
+      - "Procurador"
+      - "Procurador General"
+      - "Director Financiero"
+  alto:
+    # Cambia un Abogado o Coordinador Juridico.
+    cargos:
+      - "Abogado"
+      - "Coordinador Juridico"
+  medio:
+    # Cambia el correo o telefono de un funcionario (cualquier cargo).
+    campos:
+      - "correo"
+      - "telefono"
+  # "bajo" es el nivel por defecto: correcciones menores de formato o
+  # normalizacion del nombre/apellido que no calzan en ninguna regla
+  # anterior -- no necesita lista propia en el YAML.
+
+# % de funcionarios afectados (sobre el total vigente de la entidad) a
+# partir del cual se genera la alerta CAMBIO_SUPERIOR_30_PORCIENTO.
+umbral_cambio_masivo_pct: 30.0
+
+# Cantidad ABSOLUTA de funcionarios afectados a partir de la cual se
+# genera la alerta CAMBIO_MASIVO, independiente del porcentaje (una
+# entidad grande puede sumar muchos cambios reales sin llegar al 30%).
+umbral_cambio_masivo_absoluto: 15

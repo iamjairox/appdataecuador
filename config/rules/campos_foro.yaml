@@ -1,0 +1,28 @@
+# Normalizador del Foro -- Submodulo 8.3. Etiqueta de campo tal como
+# aparece en el HTML del Foro de Abogados (ya normalizada: mayuscula, sin
+# tildes/puntuacion, ver `domain/rules/normalizacion.py`) -> nombre
+# canonico del campo en `RegistroForoDTO`. Nunca hardcodeado en Python.
+campos:
+  "NO REGISTRO": "registro"
+  "N REGISTRO": "registro"
+  "NUMERO DE REGISTRO": "registro"
+  "REGISTRO": "registro"
+  "MATRICULA": "registro"
+  "N MATRICULA": "registro"
+
+  "PROVINCIA": "provincia"
+  "PROVINCIA DE DOMICILIO": "provincia"
+
+  "ESTADO": "estado"
+  "ESTADO DEL REGISTRO": "estado"
+  "ESTADO DE LA MATRICULA": "estado"
+
+  "NOMBRE COMPLETO": "nombre_completo"
+  "NOMBRES Y APELLIDOS": "nombre_completo"
+  "APELLIDOS Y NOMBRES": "nombre_completo"
+  "ABOGADO": "nombre_completo"
+  "PROFESIONAL": "nombre_completo"
+
+  "CEDULA": "cedula"
+  "CEDULA DE IDENTIDAD": "cedula"
+  "NUMERO DE CEDULA": "cedula"

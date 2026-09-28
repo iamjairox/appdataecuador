@@ -1,0 +1,65 @@
+[
+  {
+    "id": 780998,
+    "numeral": {"id": 113, "name": "Numeral 1.1", "description": "Estructura orgánica"},
+    "files": [
+      {
+        "id": 2678777,
+        "name": "1.Estructura orgánica funcional DICCIONARIO.csv",
+        "description": "Diccionario",
+        "url_download": "/media/transparencia/1768181660001/Numeral%201.1/2026/6/Diccionario.csv"
+      },
+      {
+        "id": 2678779,
+        "name": "1.Estructura orgánica funcional CONJUNTO DE DATOS.csv",
+        "description": "1.Conjunto de datos",
+        "url_download": "/media/transparencia/1768181660001/Numeral%201.1/2026/6/1.Conjunto%20de%20datos.csv"
+      }
+    ],
+    "month": 6,
+    "year": 2026,
+    "published": true
+  },
+  {
+    "id": 781042,
+    "numeral": {"id": 102, "name": "Numeral 2", "description": "Directorio y distributivo personal de la entidad"},
+    "files": [
+      {
+        "id": 2679625,
+        "name": "10-METADATOS.csv",
+        "description": "Metadatos",
+        "url_download": "/media/publications/10-METADATOS_krtkzNl.csv"
+      },
+      {
+        "id": 2679626,
+        "name": "10-CONJUNTO DE DATOS.csv",
+        "description": "Conjunto de datos",
+        "url_download": "/media/publications/10-CONJUNTO_DE_DATOS_DFnyjMb.csv"
+      },
+      {
+        "id": 2679627,
+        "name": "10-DICCIONARIO.csv",
+        "description": "Diccionario",
+        "url_download": "/media/publications/10-DICCIONARIO_nDD2pr1.csv"
+      }
+    ],
+    "month": 6,
+    "year": 2026,
+    "published": true
+  },
+  {
+    "id": 781100,
+    "numeral": {"id": 103, "name": "Numeral 3", "description": "Remuneraciones ingresos adicionales"},
+    "files": [
+      {
+        "id": 2679700,
+        "name": "3-CONJUNTO DE DATOS.csv",
+        "description": "Conjunto de datos",
+        "url_download": "/media/publications/3-CONJUNTO_DE_DATOS_ab12cd3.csv"
+      }
+    ],
+    "month": 6,
+    "year": 2026,
+    "published": true
+  }
+]

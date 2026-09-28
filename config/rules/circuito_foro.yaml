@@ -1,0 +1,3 @@
+# Circuit Breaker del adaptador del Foro de Abogados -- Submodulo 8.9.
+umbral_fallos: 5
+segundos_enfriamiento: 60.0

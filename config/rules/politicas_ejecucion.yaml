@@ -1,0 +1,35 @@
+# Motor de Politicas de Ejecucion -- mejora sugerida por el cliente al
+# cierre del Modulo 8. 4 politicas base, seleccionables por nombre desde
+# el GovDataPipelineOrchestrator sin cambiar una sola linea de codigo.
+politicas:
+  consulta_rapida:
+    usar_cache: true
+    forzar_actualizacion: false
+    solo_cambios: false
+    concurrencia_maxima: 1
+    reintentos_automaticos: false
+    prioridad_pendientes: false
+
+  actualizacion_completa:
+    usar_cache: false
+    forzar_actualizacion: true
+    solo_cambios: false
+    concurrencia_maxima: 1
+    reintentos_automaticos: false
+    prioridad_pendientes: false
+
+  solo_cambios:
+    usar_cache: true
+    forzar_actualizacion: false
+    solo_cambios: true
+    concurrencia_maxima: 2
+    reintentos_automaticos: false
+    prioridad_pendientes: false
+
+  masiva_nocturna:
+    usar_cache: true
+    forzar_actualizacion: false
+    solo_cambios: false
+    concurrencia_maxima: 5
+    reintentos_automaticos: true
+    prioridad_pendientes: true

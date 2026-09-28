@@ -1,0 +1,6 @@
+# Motor de Confianza y Revision Manual -- Submodulo 6.21.
+#   score >= umbral_fusion_automatica                                -> fusion automatica
+#   umbral_revision_manual <= score < umbral_fusion_automatica       -> caso de revision manual
+#   score < umbral_revision_manual                                   -> se mantienen separadas
+umbral_fusion_automatica: 98.0
+umbral_revision_manual: 85.0

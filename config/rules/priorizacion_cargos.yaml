@@ -1,0 +1,14 @@
+# Motor de Priorizacion -- Submodulo 6.11. Que Personas enriquecer
+# primero, segun el cargo mas relevante que ocupan. Nada hardcodeado:
+# agregar una institucion o ajustar un puntaje es editar este archivo.
+prioridades:
+  "Director Juridico": 100
+  "Procurador": 95
+  "Procurador General": 95
+  "Director Financiero": 90
+  "Asesor Juridico": 85
+  "Abogado": 80
+  "Coordinador Juridico": 80
+
+prioridad_defecto: 10.0
+umbral_score_minimo: 80.0

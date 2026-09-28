@@ -1,0 +1,23 @@
+[
+  {
+    "id": 900001,
+    "numeral": {"id": 102, "name": "Numeral 2", "description": "Directorio del personal"},
+    "files": [
+      {
+        "id": 3000001,
+        "name": "directorio-personal.pdf",
+        "description": "Conjunto de datos",
+        "url_download": "/media/publications/directorio-personal_x9k2.pdf"
+      },
+      {
+        "id": 3000002,
+        "name": "directorio-personal-metadatos.pdf",
+        "description": "Metadatos",
+        "url_download": "/media/publications/directorio-personal-metadatos_a1b2.pdf"
+      }
+    ],
+    "month": 3,
+    "year": 2026,
+    "published": true
+  }
+]

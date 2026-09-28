@@ -1,0 +1,51 @@
+# Motor de Reglas -- Modulo 4, Submodulo 4.3 (Clasificador Inteligente)
+#
+# Que cargos pertenecen a que area, y con que umbral de confianza se
+# acepta un match difuso (RapidFuzz, solo token_sort_ratio -- ver la
+# leccion aprendida en el Modulo 2: `partial_ratio` produce falsos
+# positivos con cargos que son simple prefijo de la variante).
+#
+# Cambiar el umbral, agregar un area nueva, o adaptar el sistema a otra
+# institucion/pais: se edita este archivo, nunca el codigo.
+
+umbral_score_minimo: 80.0
+
+niveles_confianza:
+  alta: 92.0
+  media: 80.0
+  # cualquier score < media (pero >= umbral_score_minimo) se reporta como BAJA
+
+areas:
+  juridica:
+    cargos:
+      - "Juridico"
+      - "Legal"
+      - "Procuraduria"
+      - "Procurador"
+      - "Director Juridico"
+      - "Coordinador Juridico"
+      - "Asesor Juridico"
+      - "Abogado"
+    # Respaldo por palabra clave (ver ReglasClasificacion.palabras_clave_por_area):
+    # cargos reales del sector publico son frases largas ("Analista Juridico
+    # 1 del SFPS") que el fuzzy match de arriba no alcanza. Si el cargo
+    # contiene uno de estos TOKENS completos, se clasifica directo, sin
+    # pasar por el fuzzy match. Reproducido y autorizado con datos reales
+    # de la SEPS (28/28 cargos "Juridico..." quedaban fuera solo con fuzzy).
+    palabras_clave:
+      - "Juridico"
+      - "Juridica"
+      - "Juridicos"
+      - "Juridicas"
+
+  financiera:
+    cargos:
+      - "Financiero"
+      - "Director Financiero"
+    # SIN respaldo por palabra clave (a diferencia de juridica, arriba):
+    # probado con datos reales de la SEPS y revertido -- "Financiero" es
+    # ambiguo en entidades que regulan el "sector financiero" (ej. SEPS),
+    # donde la palabra describe el sector supervisado, no el area interna
+    # del cargo (produjo 147 falsos positivos como "Analista Legal del
+    # Sector Financiero"). Decision explicita del usuario: por ahora solo
+    # juridica usa el respaldo por palabra clave.

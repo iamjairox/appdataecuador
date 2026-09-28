@@ -1,0 +1,13 @@
+# Normalizador Academico -- Submodulo 7.4/7.5. Sinonimo/abreviatura de
+# institucion (normalizado) -> forma canonica. La mayoria de nombres de
+# universidad no necesitan entrada aqui (la normalizacion basica --
+# mayuscula, sin tildes -- ya alcanza); esto es solo para abreviaturas
+# reales usadas por distintas fuentes para la MISMA institucion.
+canonicos:
+  "U CENTRAL": "UNIVERSIDAD CENTRAL DEL ECUADOR"
+  "UCE": "UNIVERSIDAD CENTRAL DEL ECUADOR"
+  "PUCE": "PONTIFICIA UNIVERSIDAD CATOLICA DEL ECUADOR"
+  "EPN": "ESCUELA POLITECNICA NACIONAL"
+  "ESPOL": "ESCUELA SUPERIOR POLITECNICA DEL LITORAL"
+  "UASB": "UNIVERSIDAD ANDINA SIMON BOLIVAR"
+  "UDLA": "UNIVERSIDAD DE LAS AMERICAS"

@@ -1,0 +1,9 @@
+# Motor de Reglas -- Modulo 4, Submodulo 4.9 (Cache inteligente)
+#
+# Cuantos dias se considera "vigente" (no reprocesar) la ultima extraccion
+# exitosa de una entidad. 0 = siempre revisar si hay una version nueva
+# publicada; 1 = si ya se proceso hoy, no repetir. Independiente de esto,
+# si el HASH del documento cambio (Modulo 3 lo detecta automaticamente
+# via `Documento.version`), SIEMPRE se reprocesa sin importar la fecha.
+
+dias_vigencia: 1

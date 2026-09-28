@@ -1,0 +1,47 @@
+{
+  "total": 2,
+  "results": [
+    {
+      "letter": "U",
+      "data": [
+        {
+          "id": 1920,
+          "name": "UNIVERSIDAD NACIONAL DE EDUCACION",
+          "code": "1917",
+          "abbreviation": "UNAE",
+          "is_active": true,
+          "function_organization": "OTRAS INSTITUCIONES PÚBLICAS"
+        },
+        {
+          "id": 1358,
+          "name": "EMPRESA PÚBLICA DE PRODUCCIÓN Y DESARROLLO ESTRATÉGICO DE LA UNIVERSIDAD ESTATAL DE MILAGRO",
+          "code": "1358",
+          "abbreviation": "EPUNEMI",
+          "is_active": true,
+          "function_organization": "OTRAS INSTITUCIONES PÚBLICAS"
+        }
+      ]
+    },
+    {
+      "letter": "E",
+      "data": [
+        {
+          "id": 1896,
+          "name": "ESMEVIAL EP - EMPRESA DE MOVILIDAD Y TRANSITO DEL CANTON ESMERALDAS",
+          "code": "1893",
+          "abbreviation": "ESMEVIAL EP",
+          "is_active": true,
+          "function_organization": "OTRAS INSTITUCIONES PÚBLICAS"
+        },
+        {
+          "id": 1234,
+          "name": "ENTIDAD INACTIVA DE PRUEBA",
+          "code": "1234",
+          "abbreviation": "EIP",
+          "is_active": false,
+          "function_organization": "OTRAS INSTITUCIONES PÚBLICAS"
+        }
+      ]
+    }
+  ]
+}
