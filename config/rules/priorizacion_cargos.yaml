@@ -1,14 +1,54 @@
 # Motor de Priorizacion -- Submodulo 6.11. Que Personas enriquecer
 # primero, segun el cargo mas relevante que ocupan. Nada hardcodeado:
 # agregar una institucion o ajustar un puntaje es editar este archivo.
+#
+# Dos mecanismos; gana el mayor:
+#   - `prioridades`: fuzzy match contra el cargo completo (catalogo corto).
+#   - `prioridades_por_palabras`: el cargo contiene una alternativa de cada
+#     grupo como palabra completa, en cualquier orden ("A|B" = A o B). Se
+#     evaluan en orden y gana la PRIMERA que acierta, asi las reglas mas
+#     especificas van arriba (subprocurador antes que procurador).
+#     Motivo: los cargos reales del numeral 2 DPE son frases largas
+#     ("DIRECTOR/A DE ASESORIA JURIDICA", "PROCURADOR SINDICO") que el
+#     fuzzy match no alcanza (quedaban con la prioridad por defecto).
 prioridades:
-  "Director Juridico": 100
+  "Director Juridico": 95
   "Procurador": 95
   "Procurador General": 95
   "Director Financiero": 90
-  "Asesor Juridico": 85
-  "Abogado": 80
-  "Coordinador Juridico": 80
+  "Coordinador Juridico": 85
+  "Asesor Juridico": 75
+  "Abogado": 65
+
+prioridades_por_palabras:
+  - palabras: ["Subprocurador|Subprocuradora"]
+    prioridad: 90
+  - palabras: ["Sub", "Procurador|Procuradora"]
+    prioridad: 90
+  - palabras: ["Procurador|Procuradora", "Sindico|Sindica"]
+    prioridad: 100
+  - palabras: ["Procurador|Procuradora"]
+    prioridad: 95
+  - palabras: ["Director|Directora|Gerente|Intendente", "Asesoria", "Juridico|Juridica|Legal"]
+    prioridad: 93
+  - palabras: ["Director|Directora|Gerente|Intendente", "Juridico|Juridica"]
+    prioridad: 95
+  - palabras: ["Director|Directora", "Patrocinio"]
+    prioridad: 90
+  - palabras: ["Coordinador|Coordinadora", "Juridico|Juridica|Legal|Patrocinio"]
+    prioridad: 85
+  - palabras: ["Jefe|Jefa", "Juridico|Juridica|Legal|Patrocinio"]
+    prioridad: 80
+  - palabras: ["Asesor|Asesora", "Juridico|Juridica|Legal"]
+    prioridad: 75
+  - palabras: ["Especialista|Experto|Experta", "Juridico|Juridica"]
+    prioridad: 72
+  - palabras: ["Analista|Profesional", "Juridico|Juridica|Patrocinio"]
+    prioridad: 70
+  - palabras: ["Abogado|Abogada"]
+    prioridad: 65
+  - palabras: ["Asistente|Secretario|Secretaria", "Juridico|Juridica"]
+    prioridad: 40
 
 prioridad_defecto: 10.0
 umbral_score_minimo: 80.0

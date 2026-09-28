@@ -18,7 +18,18 @@ from govdata.domain.rules.normalizacion import normalizar_texto
 from govdata.domain.rules.reglas_identidad import ReglasPriorizacion
 
 
+def _prioridad_por_palabras(cargo_normalizado: str, reglas: ReglasPriorizacion) -> float | None:
+    palabras = set(cargo_normalizado.split())
+    for regla in reglas.reglas_por_palabras:
+        if all(any(normalizar_texto(alternativa) in palabras for alternativa in grupo) for grupo in regla.grupos):
+            return regla.prioridad
+    return None
+
+
 def calcular_prioridad(cargo: str | None, reglas: ReglasPriorizacion) -> float:
+    """Mayor entre el fuzzy match del catalogo y la primera regla por
+    palabras que acierte; la prioridad por defecto si ninguno reconoce el
+    cargo."""
     if not cargo or not cargo.strip():
         return reglas.prioridad_defecto
 
@@ -30,6 +41,9 @@ def calcular_prioridad(cargo: str | None, reglas: ReglasPriorizacion) -> float:
         if score >= reglas.umbral_score_minimo and score > mejor_score:
             mejor_score = score
             mejor_prioridad = prioridad
+    por_palabras = _prioridad_por_palabras(cargo_normalizado, reglas)
+    if por_palabras is not None:
+        return max(mejor_prioridad, por_palabras)
     return mejor_prioridad
 
 

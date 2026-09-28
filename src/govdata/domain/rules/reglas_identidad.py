@@ -68,6 +68,16 @@ class ReglasCachePorFuente:
 
 
 @dataclass(frozen=True, slots=True)
+class ReglaPrioridadPorPalabras:
+    """El cargo contiene, como palabra completa y en cualquier orden, al
+    menos una alternativa de CADA grupo: `(("PROCURADOR", "PROCURADORA"),
+    ("SINDICO", "SINDICA"))` acepta "PROCURADORA SINDICA MUNICIPAL"."""
+
+    grupos: tuple[tuple[str, ...], ...]
+    prioridad: float
+
+
+@dataclass(frozen=True, slots=True)
 class ReglasPriorizacion:
     """Motor de Priorizacion (Submodulo 6.11): que Personas enriquecer
     primero, segun el cargo que ocupan."""
@@ -75,6 +85,10 @@ class ReglasPriorizacion:
     prioridad_por_cargo: dict[str, float] = field(default_factory=dict)
     prioridad_defecto: float = 10.0
     umbral_score_minimo: float = 80.0
+    reglas_por_palabras: tuple[ReglaPrioridadPorPalabras, ...] = ()
+    """Evaluadas en orden (la primera que acierta gana): los cargos reales
+    son frases largas ("DIRECTOR/A DE ASESORIA JURIDICA") que el fuzzy
+    match de `prioridad_por_cargo` no alcanza."""
 
 
 @dataclass(frozen=True, slots=True)

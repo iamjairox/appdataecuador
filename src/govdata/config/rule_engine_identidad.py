@@ -18,6 +18,7 @@ import yaml
 from govdata.domain.exceptions.domain_exceptions import ConfiguracionInvalidaError
 from govdata.domain.rules.reglas_identidad import (
     PesosScoring,
+    ReglaPrioridadPorPalabras,
     ReglasCachePorFuente,
     ReglasPriorizacion,
     RuleEngineIdentidad,
@@ -81,6 +82,13 @@ def cargar_rule_engine_identidad(directorio_reglas: Path | str | None = None) ->
         prioridad_por_cargo={str(k): float(v) for k, v in prioridades_raw.items()},
         prioridad_defecto=float(priorizacion_raw.get("prioridad_defecto", 10.0)),
         umbral_score_minimo=float(priorizacion_raw.get("umbral_score_minimo", 80.0)),
+        reglas_por_palabras=tuple(
+            ReglaPrioridadPorPalabras(
+                grupos=tuple(tuple(str(alt).strip() for alt in str(grupo).split("|")) for grupo in regla["palabras"]),
+                prioridad=float(regla["prioridad"]),
+            )
+            for regla in priorizacion_raw.get("prioridades_por_palabras") or []
+        ),
     )
 
     return RuleEngineIdentidad(

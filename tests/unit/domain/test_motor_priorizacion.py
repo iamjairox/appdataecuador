@@ -44,3 +44,36 @@ class TestOrdenarPorPrioridad:
         cargos = {"chofer": "Chofer", "director": "Director Juridico"}
         resultado = ordenar_por_prioridad(candidatos, lambda c: cargos[c], _REGLAS)
         assert resultado[0] == "director"
+
+
+class TestPrioridadConReglasReales:
+    """`config/rules/priorizacion_cargos.yaml` real contra cargos reales del
+    numeral 2 DPE (muestreo 2026-09-27)."""
+
+    @staticmethod
+    def _prioridad(cargo: str) -> float:
+        from govdata.config.rule_engine_identidad import cargar_rule_engine_identidad
+
+        return calcular_prioridad(cargo, cargar_rule_engine_identidad().priorizacion)
+
+    def test_orden_de_contacto_juridico(self) -> None:
+        cargos_en_orden = [
+            "PROCURADOR SINDICO",
+            "DIRECTOR JURIDICO",
+            "DIRECTOR/A DE ASESORIA JURIDICA",
+            "COORDINADOR/A GENERAL JURIDICO/A",
+            "JEFE DE PATROCINIO",
+            "ASESOR JURIDICO 2",
+            "ANALISTA JURIDICO ZONAL 2",
+            "ABOGADO JUNIOR",
+            "CONSERJE",
+        ]
+        prioridades = [self._prioridad(c) for c in cargos_en_orden]
+        assert prioridades == sorted(prioridades, reverse=True)
+        assert len(set(prioridades)) == len(prioridades)
+
+    def test_subprocurador_por_debajo_del_procurador(self) -> None:
+        assert self._prioridad("SUB PROCURADOR SINDICO") < self._prioridad("PROCURADORA SÍNDICA MUNICIPAL")
+
+    def test_cargo_no_juridico_conserva_prioridad_por_defecto(self) -> None:
+        assert self._prioridad("AGENTE MUNICIPAL") == 10.0

@@ -41,7 +41,10 @@ class TestCargarRuleEngineIdentidad:
         assert engine.scoring.fingerprint == 0.40
         assert engine.fusion.umbral_fusion_automatica == 98.0
         assert engine.cache_por_fuente.dias_vigencia("senescyt") == 30
-        assert engine.priorizacion.prioridad_por_cargo["Director Juridico"] == 100.0
+        # Seccion 12: el Procurador Sindico (reglas por palabras, 100) va por
+        # encima del Director Juridico.
+        assert engine.priorizacion.prioridad_por_cargo["Director Juridico"] == 95.0
+        assert engine.priorizacion.reglas_por_palabras
 
     def test_carga_directorio_alternativo(self, tmp_path: Path) -> None:
         _escribir_yaml_validos(tmp_path)
