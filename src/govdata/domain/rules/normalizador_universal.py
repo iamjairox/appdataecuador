@@ -51,6 +51,14 @@ def _mapear_encabezados(
     return mapeo
 
 
+def contar_encabezados_reconocidos(celdas: tuple[str, ...], reglas: ReglasNormalizacion) -> int:
+    """Cuantas celdas de una fila se reconocen como encabezado canonico, con
+    el MISMO mapeo difuso que `normalizar_tabla` -- base de la deteccion de
+    la fila de encabezado (`detector_encabezado.py`), para que no exista
+    una segunda lista de sinonimos paralela a la del YAML."""
+    return len(_mapear_encabezados(celdas, reglas.sinonimos_por_campo, UMBRAL_MATCH_ENCABEZADO_DEFECTO))
+
+
 def dividir_nombre_completo(nombre_completo: str) -> tuple[str, str]:
     """Heuristica de particion de un nombre combinado en (nombres, apellidos).
 

@@ -403,13 +403,16 @@ class Container:
     @cached_property
     def parser_factory(self) -> ParserFactory:
         """Fabrica de parsers (Submodulo 4.1, patron Strategy). Agregar un
-        formato nuevo es agregar una clase a esta lista, nunca un `if`."""
+        formato nuevo es agregar una clase a esta lista, nunca un `if`.
+        Los parsers tabulares reciben los sinonimos de normalizacion para
+        detectar la hoja y la fila de encabezado reales."""
+        normalizacion = self.rule_engine.normalizacion
         return ParserFactory(
             parsers=[
                 PdfParserEngine(),
-                XlsxParser(),
-                XlsParser(),
-                CsvParser(),
+                XlsxParser(normalizacion),
+                XlsParser(normalizacion),
+                CsvParser(normalizacion),
             ]
         )
 
