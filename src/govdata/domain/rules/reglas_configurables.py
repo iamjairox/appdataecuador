@@ -39,7 +39,22 @@ class ReglasClasificacion:
     de la SEPS: 28/28 cargos con "Juridico" quedaban por debajo del
     umbral). Si el cargo contiene una de estas palabras como TOKEN
     completo (no substring), se clasifica al area sin pasar por el
-    fuzzy match -- confirmado con el usuario, autorizado explicitamente."""
+    fuzzy match -- confirmado con el usuario, autorizado explicitamente.
+    Una entrada con varias palabras ("Asesoria Legal") exige esas palabras
+    contiguas."""
+    palabras_clave_dependencia_por_area: dict[str, list[str]] = field(default_factory=dict)
+    """Tercer mecanismo: la DEPENDENCIA identifica el area aunque el cargo no
+    lo diga ("DIRECTOR" en "DIRECCION DE ASESORIA JURIDICA"). Mismo matching
+    por tokens que `palabras_clave_por_area`."""
+    cargos_habilitantes_dependencia_por_area: dict[str, list[str]] = field(default_factory=dict)
+    """La dependencia solo clasifica si el cargo contiene uno de estos tokens
+    (roles directivos/profesionales). Muestreo real: una "DIRECCION DE
+    PROCURADURIA SINDICA" municipal tenia 35 agentes municipales, policias y
+    conductores -- sin este filtro contaminarian la prospeccion juridica.
+    Lista vacia = la dependencia nunca clasifica para esa area."""
+    cargos_excluidos_dependencia_por_area: dict[str, list[str]] = field(default_factory=dict)
+    """Terminos que descartan la via por dependencia aunque el cargo sea
+    habilitante ("COORDINADOR DE SEGURIDAD" en una Procuraduria Sindica)."""
 
 
 @dataclass(frozen=True, slots=True)

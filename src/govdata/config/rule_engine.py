@@ -68,6 +68,7 @@ def cargar_rule_engine(directorio_reglas: Path | str | None = None) -> RuleEngin
         raise ConfiguracionInvalidaError("clasificacion_areas.yaml requiere una clave 'areas' no vacia")
     cargos_por_area = {nombre_area: datos.get("cargos", []) for nombre_area, datos in areas.items()}
     palabras_clave_por_area = {nombre_area: datos.get("palabras_clave", []) for nombre_area, datos in areas.items()}
+    dependencias = {nombre_area: datos.get("dependencias") or {} for nombre_area, datos in areas.items()}
     niveles = clasificacion_raw.get("niveles_confianza", {})
     clasificacion = ReglasClasificacion(
         umbral_score_minimo=float(clasificacion_raw.get("umbral_score_minimo", 80.0)),
@@ -75,6 +76,11 @@ def cargar_rule_engine(directorio_reglas: Path | str | None = None) -> RuleEngin
         nivel_media=float(niveles.get("media", 80.0)),
         cargos_por_area=cargos_por_area,
         palabras_clave_por_area=palabras_clave_por_area,
+        palabras_clave_dependencia_por_area={a: list(d.get("palabras_clave", [])) for a, d in dependencias.items()},
+        cargos_habilitantes_dependencia_por_area={
+            a: list(d.get("cargos_habilitantes", [])) for a, d in dependencias.items()
+        },
+        cargos_excluidos_dependencia_por_area={a: list(d.get("cargos_excluidos", [])) for a, d in dependencias.items()},
     )
 
     cache_raw = _leer_yaml(directorio / "vigencia_cache.yaml")

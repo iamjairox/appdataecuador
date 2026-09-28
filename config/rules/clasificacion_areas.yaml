@@ -37,6 +37,75 @@ areas:
       - "Juridica"
       - "Juridicos"
       - "Juridicas"
+      # Muestreo real DPE (24 entidades, 2026-09-27): estos cargos juridicos
+      # quedaban fuera ("PROCURADOR SINDICO", "SUB PROCURADOR SINDICO",
+      # "ABOGADO JUNIOR", "JEFE DE PATROCINIO", "ANALISTA DE PATROCINIO 2",
+      # "DIRECTOR/A DE ASESORIA LEGAL Y PATROCINIO").
+      - "Procurador"
+      - "Procuradora"
+      - "Subprocurador"
+      - "Subprocuradora"
+      - "Procuraduria"
+      - "Sindico"
+      - "Sindica"
+      - "Abogado"
+      - "Abogada"
+      - "Abogados"
+      # "Patrocinio" en el sector publico es patrocinio judicial; en una
+      # entidad deportiva podria ser patrocinio comercial -- se acepta el
+      # riesgo porque los casos reales observados eran todos juridicos.
+      - "Patrocinio"
+      - "Litigio"
+      - "Litigios"
+      # Frases (palabras contiguas): "LEGAL" suelto NO se usa porque
+      # "REPRESENTANTE LEGAL" no es del area juridica.
+      - "Asesoria Legal"
+      - "Asesor Legal"
+      - "Asesora Legal"
+    # Por dependencia: la unidad identifica el area aunque el cargo no lo
+    # diga ("DIRECTOR" en "DIRECCION DE ASESORIA JURIDICA"), pero SOLO para
+    # roles directivos/profesionales. Muestreo real: una "DIRECCION DE
+    # PROCURADURIA SINDICA" municipal tenia 35 agentes municipales, policias
+    # y conductores que no son contactos juridicos.
+    dependencias:
+      palabras_clave:
+        - "Juridico"
+        - "Juridica"
+        - "Procuraduria"
+        - "Sindicatura"
+        - "Patrocinio"
+        - "Asesoria Legal"
+      cargos_habilitantes:
+        - "Director"
+        - "Directora"
+        - "Subdirector"
+        - "Subdirectora"
+        - "Coordinador"
+        - "Coordinadora"
+        - "Jefe"
+        - "Jefa"
+        - "Asesor"
+        - "Asesora"
+        - "Analista"
+        - "Especialista"
+        - "Intendente"
+      # Aunque el cargo sea habilitante, estos terminos lo descartan en la
+      # via por dependencia (muestreo real: "COORDINADOR DE SEGURIDAD Y DE
+      # AGENTES DE CONTROL" y "ANALISTA DE CONTRATACION DE BIENES Y
+      # SERVICIOS" dentro de unidades juridicas). No afecta a cargos que ya
+      # se clasifican por su propio nombre ("ESPECIALISTA JURIDICO DE
+      # CONTRATACION PUBLICA").
+      cargos_excluidos:
+        - "Seguridad"
+        - "Agente"
+        - "Agentes"
+        - "Policia"
+        - "Conductor"
+        - "Chofer"
+        - "Operador"
+        - "Guardia"
+        - "Vigilante"
+        - "Contratacion"
 
   financiera:
     cargos:

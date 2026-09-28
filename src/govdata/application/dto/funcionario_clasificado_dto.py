@@ -21,6 +21,14 @@ class NivelConfianzaClasificacion(str, Enum):
     BAJA = "baja"
 
 
+class MotivoClasificacion(str, Enum):
+    """Que mecanismo de `clasificar_funcionario` acerto."""
+
+    CARGO_SIMILAR = "cargo_similar"
+    CARGO_PALABRA_CLAVE = "cargo_palabra_clave"
+    DEPENDENCIA = "dependencia"
+
+
 @dataclass(frozen=True, slots=True)
 class FuncionarioClasificadoDTO:
     """Una fila clasificada como perteneciente a un area relevante."""
@@ -32,6 +40,7 @@ class FuncionarioClasificadoDTO:
     nivel_confianza: NivelConfianzaClasificacion
     fingerprint: str | None = None
     fingerprint_hash: str | None = None
+    motivo_clasificacion: MotivoClasificacion = MotivoClasificacion.CARGO_SIMILAR
 
     def con_fingerprint(self, fingerprint: str, fingerprint_hash: str) -> FuncionarioClasificadoDTO:
         """Retorna una copia con el fingerprint de identidad ya calculado

@@ -16,6 +16,7 @@ from rapidfuzz import fuzz
 from govdata.application.dto.fila_extraida_dto import FilaExtraidaDTO
 from govdata.application.dto.funcionario_clasificado_dto import (
     FuncionarioClasificadoDTO,
+    MotivoClasificacion,
     NivelConfianzaClasificacion,
 )
 from govdata.domain.rules.normalizacion import normalizar_texto
@@ -38,19 +39,43 @@ def _mejor_coincidencia(cargo_normalizado: str, reglas: ReglasClasificacion) -> 
     return mejor_area, mejor_cargo_candidato, mejor_score
 
 
+def _contiene_palabra_clave(texto_normalizado: str, palabras_clave: list[str]) -> bool:
+    """True si alguna palabra clave aparece como palabra(s) COMPLETA(s) --
+    nunca substring: "LEGAL" no matchea "LEGALIZACION". Una clave de varias
+    palabras ("ASESORIA LEGAL") exige esas palabras contiguas."""
+    relleno = f" {texto_normalizado} "
+    return any(f" {normalizar_texto(clave)} " in relleno for clave in palabras_clave if clave.strip())
+
+
 def _coincide_por_palabra_clave(cargo_normalizado: str, reglas: ReglasClasificacion) -> str | None:
     """Respaldo del fuzzy match (`_mejor_coincidencia`): busca si alguna
-    palabra clave configurada aparece como TOKEN COMPLETO (no substring)
-    en el cargo -- ej. "ANALISTA JURIDICO 1 DEL SFPS" contiene el token
-    "JURIDICO" exacto, aunque el fuzzy match contra "Asesor Juridico" no
-    llegue al umbral por la diferencia de longitud. Solo token completo
-    (nunca substring) para no capturar coincidencias parciales dentro de
-    otra palabra."""
-    tokens_cargo = set(cargo_normalizado.split())
+    palabra clave configurada aparece como palabra completa en el cargo --
+    ej. "ANALISTA JURIDICO 1 DEL SFPS" contiene "JURIDICO", aunque el fuzzy
+    match contra "Asesor Juridico" no llegue al umbral por la diferencia
+    de longitud."""
     for area, palabras_clave in reglas.palabras_clave_por_area.items():
-        for palabra_clave in palabras_clave:
-            if normalizar_texto(palabra_clave) in tokens_cargo:
-                return area
+        if _contiene_palabra_clave(cargo_normalizado, palabras_clave):
+            return area
+    return None
+
+
+def _coincide_por_dependencia(
+    cargo_normalizado: str, dependencia_normalizada: str, reglas: ReglasClasificacion
+) -> str | None:
+    """La dependencia identifica el area ("DIRECCION DE ASESORIA JURIDICA")
+    solo si el cargo es un rol habilitante (director, analista...) -- ver
+    `ReglasClasificacion.cargos_habilitantes_dependencia_por_area`."""
+    if not dependencia_normalizada:
+        return None
+    for area, palabras_clave in reglas.palabras_clave_dependencia_por_area.items():
+        habilitantes = reglas.cargos_habilitantes_dependencia_por_area.get(area, [])
+        excluidos = reglas.cargos_excluidos_dependencia_por_area.get(area, [])
+        if (
+            _contiene_palabra_clave(dependencia_normalizada, palabras_clave)
+            and _contiene_palabra_clave(cargo_normalizado, habilitantes)
+            and not _contiene_palabra_clave(cargo_normalizado, excluidos)
+        ):
+            return area
     return None
 
 
@@ -70,7 +95,7 @@ def clasificar_funcionario(
     fila se descarta -- NO se persisten funcionarios fuera de las areas
     relevantes).
 
-    Dos mecanismos, en orden -- el primero que acierte gana:
+    Tres mecanismos, en orden -- el primero que acierte gana:
     1. Fuzzy match contra `cargos_por_area` (el original, sin cambios).
     2. Respaldo por palabra clave (`_coincide_por_palabra_clave`): cubre
        cargos reales largos que el fuzzy match no alcanza (ver docstring
@@ -78,6 +103,11 @@ def clasificar_funcionario(
        `nivel_confianza=MEDIA` -- es una coincidencia exacta de token, no
        una aproximacion, pero tampoco paso por el fuzzy match para
        llamarla ALTA.
+    3. Por dependencia (`_coincide_por_dependencia`): el cargo no nombra el
+       area pero la unidad si, y el cargo es un rol habilitante. Se
+       reporta con `nivel_confianza=BAJA`: la evidencia es indirecta.
+
+    `motivo_clasificacion` deja constancia de cual mecanismo acerto.
     """
     cargo_normalizado = normalizar_texto(fila.cargo)
     if not cargo_normalizado:
@@ -93,6 +123,7 @@ def clasificar_funcionario(
                 cargo_normalizado=cargo_candidato,
                 score=score,
                 nivel_confianza=_nivel_confianza(score, reglas),
+                motivo_clasificacion=MotivoClasificacion.CARGO_SIMILAR,
             )
 
     area_por_palabra_clave = _coincide_por_palabra_clave(cargo_normalizado, reglas)
@@ -103,6 +134,18 @@ def clasificar_funcionario(
             cargo_normalizado=fila.cargo,
             score=reglas.umbral_score_minimo,
             nivel_confianza=NivelConfianzaClasificacion.MEDIA,
+            motivo_clasificacion=MotivoClasificacion.CARGO_PALABRA_CLAVE,
+        )
+
+    area_por_dependencia = _coincide_por_dependencia(cargo_normalizado, normalizar_texto(fila.dependencia), reglas)
+    if area_por_dependencia is not None:
+        return FuncionarioClasificadoDTO(
+            fila=fila,
+            area=area_por_dependencia,
+            cargo_normalizado=fila.cargo,
+            score=reglas.umbral_score_minimo,
+            nivel_confianza=NivelConfianzaClasificacion.BAJA,
+            motivo_clasificacion=MotivoClasificacion.DEPENDENCIA,
         )
 
     return None
