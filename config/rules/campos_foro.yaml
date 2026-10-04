@@ -26,3 +26,15 @@ campos:
   "CEDULA": "cedula"
   "CEDULA DE IDENTIDAD": "cedula"
   "NUMERO DE CEDULA": "cedula"
+
+  # Campos de contacto profesional
+  "CELULAR": "celular"
+  "CELULAR PERSONAL": "celular"
+  "TELEFONO CELULAR": "celular"
+  "MOVIL": "celular"
+
+  "CORREO": "correo"
+  "CORREO ELECTRONICO": "correo"
+  "EMAIL": "correo"
+  "CORREO PERSONAL": "correo"
+  "CORREO ELECTRONICO PERSONAL": "correo"

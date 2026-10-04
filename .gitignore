@@ -25,3 +25,11 @@ htmlcov/
 
 # Configuracion local de herramientas del editor/agente
 .claude/
+
+# Configuracion privada, documentos descargados y resultados locales
+/.env.development
+/frontend/.env
+/data/documentos/
+/outputs/
+/.aider*
+/frontend-test-output.txt

@@ -9,6 +9,15 @@ from __future__ import annotations
 
 from sqlalchemy import ColumnElement, func, select
 from sqlalchemy.orm import Session
+from govdata.domain.rules.segmentador_nombre import OrdenNombre, detectar_orden_por_contenido
+
+
+def nombre_apellidos_primero(nombres: str, apellidos: str, nombres_pila: frozenset[str]) -> str:
+    original = f"{nombres} {apellidos}".strip()
+    orden = detectar_orden_por_contenido([original], nombres_pila, minimo_votos=1, mayoria=1.0)
+    # Legado: algunos documentos mezclaban órdenes bajo un mismo encabezado.
+    # Si los campos estaban invertidos, no invertir por segunda vez el texto.
+    return original if orden == OrdenNombre.APELLIDOS_PRIMERO else f"{apellidos} {nombres}".strip()
 
 from govdata.application.dto.filtros_funcionario_listado_dto import FiltrosFuncionarioListadoDTO
 from govdata.application.dto.funcionario_listado_dto import FuncionarioListadoDTO
@@ -23,8 +32,9 @@ from govdata.infrastructure.persistence.postgresql.models.persona_model import P
 
 
 class SqlAlchemyFuncionarioConsultaPaginadaRepository(FuncionarioConsultaPaginadaPort):
-    def __init__(self, session: Session) -> None:
+    def __init__(self, session: Session, nombres_pila: frozenset[str] = frozenset()) -> None:
         self._session = session
+        self._nombres_pila = nombres_pila
 
     def _condiciones(
         self, entidad_id: int, filtros: FiltrosFuncionarioListadoDTO,
@@ -80,12 +90,13 @@ class SqlAlchemyFuncionarioConsultaPaginadaRepository(FuncionarioConsultaPaginad
                 funcionario_id=funcionario.id,
                 persona_id=persona.id,
                 persona_master_id=persona_master_id,
-                nombre_completo=f"{persona.nombres} {persona.apellidos}".strip(),
+                nombre_completo=nombre_apellidos_primero(persona.nombres, persona.apellidos, self._nombres_pila),
                 nombres=persona.nombres,
                 apellidos=persona.apellidos,
                 cedula=persona.cedula,
                 correo=persona.correo,
                 telefono=persona.telefono,
+                extension_telefonica=persona.extension_telefonica,
                 cargo=funcionario.cargo,
                 dependencia=funcionario.dependencia,
                 area=funcionario.area_clasificada.value,

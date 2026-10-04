@@ -16,6 +16,7 @@ def a_dominio(modelo: PersonaModel) -> Persona:
         cedula=modelo.cedula,
         correo=Correo.crear_opcional(modelo.correo),
         telefono=Telefono.crear_opcional(modelo.telefono),
+        extension_telefonica=modelo.extension_telefonica,
         fingerprint=modelo.fingerprint,
         fingerprint_hash=modelo.fingerprint_hash,
         creado_en=modelo.creado_en,
@@ -32,6 +33,7 @@ def a_modelo(persona: Persona, modelo: PersonaModel | None = None) -> PersonaMod
     modelo.cedula = persona.cedula
     modelo.correo = str(persona.correo) if persona.correo else None
     modelo.telefono = str(persona.telefono) if persona.telefono else None
+    modelo.extension_telefonica = persona.extension_telefonica
     modelo.fingerprint = persona.fingerprint
     modelo.fingerprint_hash = persona.fingerprint_hash
     return modelo

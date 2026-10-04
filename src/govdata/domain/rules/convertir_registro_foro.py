@@ -23,4 +23,5 @@ def registro_foro_a_dto(registro: RegistroForo) -> RegistroForoDTO:
     return RegistroForoDTO(
         nombre_completo=registro.nombre_completo, registro=registro.registro,
         provincia=registro.provincia, estado=estado, cedula=registro.cedula,
+        correo=registro.correo_personal, celular=registro.celular_personal,
     )

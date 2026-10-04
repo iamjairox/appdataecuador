@@ -15,6 +15,11 @@ class ReglasNormalizacion:
     """Sinonimos de columnas: encabezado canonico -> lista de sinonimos."""
 
     sinonimos_por_campo: dict[str, list[str]] = field(default_factory=dict)
+    nombres_pila: frozenset[str] = frozenset()
+    """Nombres de pila comunes (`config/rules/nombres_pila.yaml`, ya
+    normalizados) para deducir el orden real de una columna combinada de
+    nombre cuando el contenido contradice al encabezado. Vacio = se usa
+    solo el encabezado (comportamiento anterior)."""
 
 
 @dataclass(frozen=True, slots=True)

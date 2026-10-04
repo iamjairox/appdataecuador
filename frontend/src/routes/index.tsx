@@ -13,11 +13,15 @@ import { FuncionarioPerfilPage } from '../pages/funcionarios/FuncionarioPerfilPa
 import { FuncionarioHistorialPage } from '../pages/funcionarios/FuncionarioHistorialPage'
 import { FuncionarioAcademicoPage } from '../pages/funcionarios/FuncionarioAcademicoPage'
 import { FuncionarioForoPage } from '../pages/funcionarios/FuncionarioForoPage'
+import { FuncionarioValidarAbogadoPage } from '../pages/funcionarios/FuncionarioValidarAbogadoPage'
 import { FuncionarioAlertasPage } from '../pages/funcionarios/FuncionarioAlertasPage'
 import { FuncionarioTimelinePage } from '../pages/funcionarios/FuncionarioTimelinePage'
 import { AlertasIndexPage } from '../pages/AlertasIndexPage'
 import { JobsIndexPage } from '../pages/jobs/JobsIndexPage'
 import { JobDetallePage } from '../pages/jobs/JobDetallePage'
+import { AbogadosEcuadorPage } from '../pages/abogados/AbogadosEcuadorPage'
+import { CompaniasPage } from '../pages/companias/CompaniasPage'
+import { AuditoresEcuadorPage } from '../pages/auditores/AuditoresEcuadorPage'
 
 export const router = createBrowserRouter([
   {
@@ -26,6 +30,9 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <HomePage /> },
       { path: 'entidades', element: <EntidadesListPage /> },
+      { path: 'abogados-ecuador', element: <AbogadosEcuadorPage /> },
+      { path: 'auditores-ecuador', element: <AuditoresEcuadorPage /> },
+      { path: 'companias', element: <CompaniasPage /> },
       { path: 'entidades/:entidadId', element: <EntidadDetallePage /> },
       { path: 'entidades/:entidadId/consulta', element: <EntidadConsultaPage /> },
       { path: 'entidades/:entidadId/alertas', element: <EntidadAlertasPage /> },
@@ -36,6 +43,7 @@ export const router = createBrowserRouter([
       { path: 'funcionarios/:personaMasterId/historial', element: <FuncionarioHistorialPage /> },
       { path: 'funcionarios/:personaMasterId/academico', element: <FuncionarioAcademicoPage /> },
       { path: 'funcionarios/:personaMasterId/foro', element: <FuncionarioForoPage /> },
+      { path: 'funcionarios/:personaMasterId/validar-abogado', element: <FuncionarioValidarAbogadoPage /> },
       { path: 'funcionarios/:personaMasterId/alertas', element: <FuncionarioAlertasPage /> },
       { path: 'funcionarios/:personaMasterId/timeline', element: <FuncionarioTimelinePage /> },
       { path: 'alertas', element: <AlertasIndexPage /> },

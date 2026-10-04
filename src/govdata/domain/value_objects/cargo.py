@@ -3,16 +3,14 @@
 from __future__ import annotations
 
 import re
-import unicodedata
 from dataclasses import dataclass
 
 from govdata.domain.exceptions.domain_exceptions import ValorInvalidoError
+from govdata.domain.rules.texto_humano import reparar_texto_humano
 
 
 def _normalizar_texto(texto: str) -> str:
-    sin_tildes = unicodedata.normalize("NFKD", texto)
-    sin_tildes = "".join(c for c in sin_tildes if not unicodedata.combining(c))
-    colapsado = re.sub(r"\s+", " ", sin_tildes).strip()
+    colapsado = re.sub(r"\s+", " ", reparar_texto_humano(texto)).strip()
     return colapsado
 
 

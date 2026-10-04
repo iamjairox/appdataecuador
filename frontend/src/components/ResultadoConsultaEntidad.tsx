@@ -100,7 +100,9 @@ export function ResultadoConsultaEntidad({ resultado, tituloEntidad }: Resultado
                     <Th>Cargo</Th>
                     <Th>Dependencia</Th>
                     <Th>Correo</Th>
+                    <Th>Email personal</Th>
                     <Th>Teléfono</Th>
+                    <Th>Extensión</Th>
                     <Th>Celular</Th>
                     <Th>Registro Foro</Th>
                     <Th>Estado Foro</Th>
@@ -126,10 +128,17 @@ export function ResultadoConsultaEntidad({ resultado, tituloEntidad }: Resultado
                       </Td>
                       <Td>
                         <div className="flex items-center gap-1">
+                          {f.correo_personal ?? '—'}
+                          <CopyButton value={f.correo_personal} label="Email personal" />
+                        </div>
+                      </Td>
+                      <Td>
+                        <div className="flex items-center gap-1">
                           {f.telefono ?? '—'}
                           <CopyButton value={f.telefono} label="Teléfono" />
                         </div>
                       </Td>
+                      <Td>{f.extension_telefonica ?? '—'}</Td>
                       <Td>
                         <div className="flex items-center gap-1">
                           {f.celular ?? '—'}
@@ -162,9 +171,14 @@ export function ResultadoConsultaEntidad({ resultado, tituloEntidad }: Resultado
                       <CopyButton value={f.correo} label="Correo" />
                     </div>
                     <div className="flex items-center gap-1">
+                      <span className="text-slate-500">Email personal: {f.correo_personal ?? '—'}</span>
+                      <CopyButton value={f.correo_personal} label="Email personal" />
+                    </div>
+                    <div className="flex items-center gap-1">
                       <span className="text-slate-500">Teléfono: {f.telefono ?? '—'}</span>
                       <CopyButton value={f.telefono} label="Teléfono" />
                     </div>
+                    <span className="text-slate-500">Extensión: {f.extension_telefonica ?? '—'}</span>
                     <div className="flex items-center gap-1">
                       <span className="text-slate-500">Celular: {f.celular ?? '—'}</span>
                       <CopyButton value={f.celular} label="Celular" />

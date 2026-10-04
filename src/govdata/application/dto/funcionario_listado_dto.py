@@ -29,6 +29,7 @@ class FuncionarioListadoDTO:
     vigente: bool
     fecha_inicio: str | None
     fecha_fin: str | None
+    extension_telefonica: str | None = None
 
     def to_dict(self) -> dict:
         return asdict(self)

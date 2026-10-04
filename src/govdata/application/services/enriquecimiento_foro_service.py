@@ -28,10 +28,12 @@ from dataclasses import asdict
 from datetime import UTC, datetime
 
 from govdata.application.dto.diferencia_registro_foro_dto import DiferenciaRegistroForoDTO
+from govdata.application.dto.registro_foro_dto import RegistroForoDTO
 from govdata.application.dto.resultado_enriquecimiento_foro_dto import (
     ResultadoEnriquecimientoForoDTO,
 )
 from govdata.application.ports.foro_abogados_port import ForoAbogadosPort
+from govdata.application.ports.persona_repository_port import PersonaRepositoryPort
 from govdata.application.services.alerta_foro_service import AlertaForoService
 from govdata.application.services.cache_foro_service import CacheForoService
 from govdata.application.services.comparacion_foro_service import ComparacionForoService
@@ -75,6 +77,7 @@ class EnriquecimientoForoService:
         alerta_service: AlertaForoService,
         evento_service: EventoForoService,
         rule_engine_foro: RuleEngineForo,
+        persona_repository: PersonaRepositoryPort | None = None,
         ahora_provider: Callable[[], datetime] = lambda: datetime.now(UTC),
     ) -> None:
         self._cache_service = cache_service
@@ -85,6 +88,7 @@ class EnriquecimientoForoService:
         self._alerta_service = alerta_service
         self._evento_service = evento_service
         self._rule_engine_foro = rule_engine_foro
+        self._persona_repository = persona_repository
         self._ahora_provider = ahora_provider
 
     def enriquecer(
@@ -115,6 +119,7 @@ class EnriquecimientoForoService:
             )
 
         actuales = [normalizar_registro_foro(dto, self._rule_engine_foro) for dto in resultados_crudos]
+        self._persistir_cedula_verificada(persona, actuales)
         diferencias = self._comparacion_service.comparar(persona_master.id, actuales)
         cambios_reales = [d for d in diferencias if d.es_cambio]
 
@@ -159,3 +164,31 @@ class EnriquecimientoForoService:
             duracion_segundos=round(duracion, 4),
             tipos_cambio=[d.tipo_cambio.value for d in cambios_reales],
         )
+
+    def _persistir_cedula_verificada(self, persona: Persona, registros: list[RegistroForoDTO]) -> None:
+        """Guarda una cédula que el Foro confirmó para esta persona.
+
+        El adaptador solo emite registros después de una identificación
+        inequívoca; aun así, este límite protege la identidad ya persistida:
+        nunca reemplaza una cédula existente ni viola su unicidad.
+        """
+        if self._persona_repository is None or persona.id is None or persona.cedula:
+            return
+
+        cedulas = {registro.cedula.strip() for registro in registros if registro.cedula and registro.cedula.strip().isdigit()}
+        if len(cedulas) != 1:
+            return
+
+        cedula = cedulas.pop()
+        titular_existente = self._persona_repository.buscar_por_cedula(cedula)
+        if titular_existente is not None and titular_existente.id != persona.id:
+            logger.warning(
+                "cedula_foro_no_asignada_por_conflicto",
+                persona_id=persona.id,
+                persona_existente_id=titular_existente.id,
+            )
+            return
+
+        persona.cedula = cedula
+        self._persona_repository.guardar(persona)
+        logger.info("cedula_foro_persistida", persona_id=persona.id)

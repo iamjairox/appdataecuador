@@ -17,23 +17,24 @@ correcto, o si hay ambigüedad.
 
 from __future__ import annotations
 
-import asyncio
 from dataclasses import dataclass
 
 from playwright.async_api import async_playwright
 
 from govdata.application.dto.identificacion_cedula_dto import CedulaCandidateDTO
 from govdata.application.ports.consulta_cedula_port import ConsultaCedulaPort
+from govdata.config.settings import get_settings
 from govdata.config.logging_config import get_logger
-from govdata.domain.exceptions.domain_exceptions import GovDataError
+from govdata.domain.exceptions.domain_exceptions import FuenteCedulaNoDisponibleError
+from govdata.domain.rules.matching_cedula import candidato_desde_fila_fuente
+from govdata.infrastructure.scraping.playwright.bloqueo_antibot import pagina_bloqueada_por_antibot
 from govdata.infrastructure.scraping.playwright.selectors import misdatosecuador_selectors
 from govdata.shared.security.redaccion_datos_personales import sanitizar_error_externo
 
 logger = get_logger(__name__)
 
-
-class FuenteCedulaNoDisponibleError(GovDataError):
-    """La fuente no pudo ser consultada sin intentar evadir sus controles."""
+# Reexportada para tests/rutas que la importan desde este módulo.
+__all__ = ["FuenteCedulaNoDisponibleError", "MisDatosEcuadorAdapter", "SelectoresMisDatosEcuador"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -47,7 +48,6 @@ class SelectoresMisDatosEcuador:
     filas_resultados: str = misdatosecuador_selectors.SELECTOR_FILAS_RESULTADOS
     cedula: str = misdatosecuador_selectors.SELECTOR_CEDULA
     nombre_completo: str = misdatosecuador_selectors.SELECTOR_NOMBRE_COMPLETO
-    edad: str = misdatosecuador_selectors.SELECTOR_EDAD
 
 
 class MisDatosEcuadorAdapter(ConsultaCedulaPort):
@@ -81,14 +81,18 @@ class MisDatosEcuadorAdapter(ConsultaCedulaPort):
                     page.set_default_timeout(self._timeout_ms)
 
                     # 1. Abrir la página de consulta
-                    await page.goto(
+                    respuesta = await page.goto(
                         misdatosecuador_selectors.URL_CONSULTA,
                         wait_until="domcontentloaded",
                     )
+                    if respuesta is not None and respuesta.status >= 400:
+                        raise FuenteCedulaNoDisponibleError(
+                            f"SOURCE_UNAVAILABLE: la fuente respondió HTTP {respuesta.status}; no se ejecutó la búsqueda"
+                        )
 
                     # Verificar si hay CAPTCHA o challenge
                     contenido = await page.content()
-                    if self._detectar_captcha(contenido):
+                    if get_settings().scraping.rechazar_captcha_antibot and self._detectar_captcha(contenido):
                         logger.warning("misdatosecuador_captcha_detectado")
                         raise FuenteCedulaNoDisponibleError(
                             "SOURCE_UNAVAILABLE: CAPTCHA detectado en Mis Datos Ecuador"
@@ -106,14 +110,14 @@ class MisDatosEcuadorAdapter(ConsultaCedulaPort):
 
                     # Verificar si hay CAPTCHA después del envío
                     contenido = await page.content()
-                    if self._detectar_captcha(contenido):
+                    if get_settings().scraping.rechazar_captcha_antibot and self._detectar_captcha(contenido):
                         logger.warning("misdatosecuador_captcha_detectado")
                         raise FuenteCedulaNoDisponibleError(
                             "SOURCE_UNAVAILABLE: CAPTCHA detectado en Mis Datos Ecuador"
                         )
 
-                    # 5. Extraer los resultados
-                    candidatos = await self._extraer_resultados(page)
+                    # 5. Extraer los resultados de la tabla
+                    candidatos = await self._extraer_candidatos(page)
 
                     logger.info(
                         "misdatosecuador_consulta_exitosa",
@@ -132,7 +136,7 @@ class MisDatosEcuadorAdapter(ConsultaCedulaPort):
                 f"SOURCE_UNAVAILABLE: error al consultar Mis Datos Ecuador: {error_seguro}"
             ) from exc
 
-    async def _extraer_resultados(self, page) -> list[CedulaCandidateDTO]:
+    async def _extraer_candidatos(self, page) -> list[CedulaCandidateDTO]:
         """Extrae los candidatos de la tabla de resultados."""
         candidatos: list[CedulaCandidateDTO] = []
 
@@ -142,32 +146,24 @@ class MisDatosEcuadorAdapter(ConsultaCedulaPort):
             logger.info("misdatosecuador_sin_resultados")
             return candidatos
 
-        # Extraer filas de la tabla
         filas = await page.query_selector_all(self._selectores.filas_resultados)
+        if not filas:
+            filas = await page.query_selector_all("table tr")
         for fila in filas:
-            celdas = await fila.query_selector_all("td")
-            if len(celdas) < 2:
+            cedula = await fila.query_selector(self._selectores.cedula)
+            nombre = await fila.query_selector(self._selectores.nombre_completo)
+
+            if cedula is None or nombre is None:
                 continue
 
-            cedula = (await celdas[0].text_content() or "").strip()
-            nombre_completo = (await celdas[1].text_content() or "").strip()
-
-            if not cedula or not nombre_completo:
-                continue
-
-            candidatos.append(
-                CedulaCandidateDTO(
-                    cedula=cedula,
-                    nombre_completo=nombre_completo,
-                )
+            candidato = candidato_desde_fila_fuente(
+                await cedula.text_content() or "",
+                await nombre.text_content() or "",
             )
+            if candidato is not None:
+                candidatos.append(candidato)
 
         return candidatos
 
     def _detectar_captcha(self, contenido: str) -> bool:
-        """Detecta si la página contiene un CAPTCHA o challenge."""
-        contenido_lower = contenido.lower()
-        return any(
-            palabra in contenido_lower
-            for palabra in ("captcha", "recaptcha", "g-recaptcha", "challenge", "just a moment")
-        )
+        return pagina_bloqueada_por_antibot(contenido)

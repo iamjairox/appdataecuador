@@ -2,14 +2,9 @@
 
 from __future__ import annotations
 
-import pytest
-
-from govdata.application.dto.identificacion_cedula_dto import CedulaCandidateDTO
-from govdata.domain.exceptions.domain_exceptions import GovDataError
 from govdata.infrastructure.scraping.playwright.misdatosecuador_adapter import (
     MisDatosEcuadorAdapter,
     SelectoresMisDatosEcuador,
-    FuenteCedulaNoDisponibleError,
 )
 from govdata.infrastructure.scraping.playwright.selectors import misdatosecuador_selectors
 
@@ -43,11 +38,9 @@ class TestMisDatosEcuadorAdapter:
 
     def test_detectar_captcha(self) -> None:
         adapter = MisDatosEcuadorAdapter()
-        assert adapter._detectar_captcha("captcha") is True
-        assert adapter._detectar_captcha("recaptcha") is True
-        assert adapter._detectar_captcha("g-recaptcha") is True
-        assert adapter._detectar_captcha("challenge") is True
-        assert adapter._detectar_captcha("just a moment") is True
+        assert adapter._detectar_captcha("Just a moment") is True
+        assert adapter._detectar_captcha("Checking your browser") is True
+        assert adapter._detectar_captcha("formulario con recaptcha embebido") is False
         assert adapter._detectar_captcha("normal content") is False
 
     def test_consultar_por_nombres_vacio(self) -> None:

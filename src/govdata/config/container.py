@@ -150,11 +150,11 @@ from govdata.infrastructure.consulta.documento_descarga_adapter import Documento
 from govdata.infrastructure.consulta.documento_extraccion_adapter import DocumentoExtraccionAdapter
 from govdata.infrastructure.consulta.dpe_descubrimiento_adapter import DpeDescubrimientoAdapter
 from govdata.infrastructure.http.documento_descarga_worker import DocumentoDescargaWorker
-from govdata.infrastructure.http.foro_abogados_adapter import ForoAbogadosAdapter
 from govdata.infrastructure.http.http_verificador_cambios_adapter import (
     HttpVerificadorCambiosAdapter,
 )
 from govdata.infrastructure.http.senescyt_adapter import SenescytAdapter
+from govdata.infrastructure.scraping.playwright.foro_abogados_adapter import ForoAbogadosPlaywrightAdapter
 from govdata.infrastructure.parsers.csv.csv_parser import CsvParser
 from govdata.infrastructure.parsers.excel.xls_parser import XlsParser
 from govdata.infrastructure.parsers.excel.xlsx_parser import XlsxParser
@@ -483,6 +483,21 @@ class Container:
             extraccion=extraccion,
         )
 
+    def crear_descubrimiento_dpe(self) -> DpeDescubrimientoAdapter:
+        """Crea una comprobación liviana de la publicación DPE.
+
+        Se usa para mostrar al usuario si hay un período nuevo sin iniciar
+        descarga, extracción ni consultas externas.
+        """
+        return DpeDescubrimientoAdapter(
+            DpeEntidadWorker(
+                session_factory=self.session_factory,
+                playwright_settings=self.settings.playwright,
+                scraping_settings=self.settings.scraping,
+                rate_limiter=self.rate_limiter,
+            )
+        )
+
     # -- Modulo 5: Motor de Persistencia Inteligente, Historial, Deteccion --
     # -- de Cambios y Alertas -------------------------------------------------
 
@@ -777,17 +792,14 @@ class Container:
         return cargar_rule_engine_foro()
 
     @cached_property
-    def foro_abogados_adapter(self) -> ForoAbogadosAdapter:
-        """`base_url` inyectable por variable de entorno: el Foro de
-        Abogados no tiene, al momento de este modulo, una API publica
-        documentada de forma estable (Submodulo 8.2: "no asumir aun como
-        responde") -- se deja explicitamente configurable en vez de
-        hardcodear un endpoint que podria no ser el correcto."""
-        base_url = os.getenv("FORO_ABOGADOS_BASE_URL", "https://www.foroabogados.gob.ec/consultas")
-        return ForoAbogadosAdapter(
-            base_url=base_url, catalogo_campos=self.rule_engine_foro.campos,
-            reglas_circuito=self.rule_engine_foro.circuito,
-        )
+    def foro_abogados_adapter(self) -> ForoAbogadosPlaywrightAdapter:
+        """Consulta el formulario oficial vigente del Foro de Abogados.
+
+        La fuente dejó de ofrecer el endpoint HTTP histórico. El adaptador
+        Playwright usa el formulario público oficial y conserva el mismo
+        contrato de aplicación; solo consulta cuando hay cédula disponible.
+        """
+        return ForoAbogadosPlaywrightAdapter()
 
     def crear_enriquecimiento_foro_service(self, sesion: Session) -> EnriquecimientoForoService:
         """Submodulo 8.12: arma el pipeline completo de consulta al Foro
@@ -808,6 +820,7 @@ class Container:
             alerta_service=AlertaForoService(alerta_repo),
             evento_service=EventoForoService(evento_repo),
             rule_engine_foro=self.rule_engine_foro,
+            persona_repository=SqlAlchemyPersonaRepository(sesion),
         )
 
     def crear_perfil_consolidado_service(self, sesion: Session) -> PerfilConsolidadoService:
@@ -951,6 +964,7 @@ class Container:
             alerta_service=AlertaForoService(alerta_repo),
             evento_service=EventoForoService(evento_repo),
             rule_engine_foro=self.rule_engine_foro,
+            persona_repository=SqlAlchemyPersonaRepository(sesion),
         )
 
     def crear_govdata_pipeline_orchestrator(self, sesion: Session) -> GovDataPipelineOrchestrator:
@@ -1022,13 +1036,13 @@ class Container:
             publicacion_repository=SqlAlchemyPublicacionRepository(sesion),
         )
 
-    @staticmethod
     def crear_funcionario_consulta_paginada_repository(
+        self,
         sesion: Session,
     ) -> SqlAlchemyFuncionarioConsultaPaginadaRepository:
         """Submodulo 10.33 (rendimiento): puerto NUEVO, propio del Modulo
         10 -- ver docstring de `FuncionarioConsultaPaginadaPort`."""
-        return SqlAlchemyFuncionarioConsultaPaginadaRepository(sesion)
+        return SqlAlchemyFuncionarioConsultaPaginadaRepository(sesion, self.rule_engine.normalizacion.nombres_pila)
 
     @staticmethod
     def crear_obtener_alertas_funcionario_use_case(sesion: Session) -> ObtenerAlertasFuncionarioUseCase:

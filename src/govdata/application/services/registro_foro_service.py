@@ -129,6 +129,8 @@ class RegistroForoService:
             registro_existente.provincia = datos.provincia
             registro_existente.estado = estado
             registro_existente.cedula = datos.cedula
+            registro_existente.correo_personal = datos.correo
+            registro_existente.celular_personal = datos.celular
             registro_existente.numero_version = siguiente_numero
             registro_existente.evidencia = str(consulta_foro_id)
             registro_existente.fecha_consulta = consultado_en
@@ -138,7 +140,8 @@ class RegistroForoService:
                 RegistroForo(
                     persona_master_id=persona_master_id, clave_registro=diferencia.clave_registro,
                     nombre_completo=datos.nombre_completo, registro=datos.registro, provincia=datos.provincia,
-                    estado=estado, cedula=datos.cedula, numero_version=siguiente_numero,
+                    estado=estado, cedula=datos.cedula, correo_personal=datos.correo,
+                    celular_personal=datos.celular, numero_version=siguiente_numero,
                     evidencia=str(consulta_foro_id), fecha_consulta=consultado_en,
                 )
             )

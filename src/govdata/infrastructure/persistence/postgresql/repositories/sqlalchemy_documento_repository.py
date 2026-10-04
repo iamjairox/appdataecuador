@@ -28,6 +28,16 @@ class SqlAlchemyDocumentoRepository(DocumentoRepositoryPort):
             .scalars()
             .first()
         )
+        # El descubrimiento vuelve a emitir el mismo documento como
+        # ``descubierto``. Si ya está descargado no debe borrar la ruta,
+        # hash y metadatos locales que permiten reextraerlo.
+        if (
+            modelo_existente is not None
+            and modelo_existente.estado == EstadoDocumento.DESCARGADO
+            and documento.estado == EstadoDocumento.DESCUBIERTO
+        ):
+            documento = documento_mapper.a_dominio(modelo_existente)
+
         modelo = documento_mapper.a_modelo(documento, modelo_existente)
         if modelo_existente is None:
             self._session.add(modelo)

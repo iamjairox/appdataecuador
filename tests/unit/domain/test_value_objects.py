@@ -45,11 +45,11 @@ class TestTelefono:
 
 
 class TestNombreCompleto:
-    def test_normaliza_tildes_y_mayusculas(self) -> None:
+    def test_conserva_tildes_y_normaliza_mayusculas(self) -> None:
         nc = NombreCompleto(nombres="Juan Carlos", apellidos="Pérez")
         assert nc.nombres == "JUAN CARLOS"
-        assert nc.apellidos == "PEREZ"
-        assert nc.nombre_completo == "JUAN CARLOS PEREZ"
+        assert nc.apellidos == "PÉREZ"
+        assert nc.nombre_completo == "JUAN CARLOS PÉREZ"
 
     def test_colapsa_espacios(self) -> None:
         nc = NombreCompleto(nombres="  Juan   Carlos  ", apellidos="Perez")
@@ -62,7 +62,7 @@ class TestNombreCompleto:
 
 class TestCargo:
     def test_normaliza_a_title_case(self) -> None:
-        assert Cargo("DIRECTOR JURÍDICO").valor == "Director Juridico"
+        assert Cargo("DIRECTOR JURÍDICO").valor == "Director Jurídico"
 
     def test_rechaza_cargo_vacio(self) -> None:
         with pytest.raises(ValorInvalidoError):

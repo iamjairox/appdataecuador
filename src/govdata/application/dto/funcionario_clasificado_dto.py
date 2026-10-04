@@ -27,6 +27,7 @@ class MotivoClasificacion(str, Enum):
     CARGO_SIMILAR = "cargo_similar"
     CARGO_PALABRA_CLAVE = "cargo_palabra_clave"
     DEPENDENCIA = "dependencia"
+    SIN_AREA_ESPECIALIZADA = "sin_area_especializada"
 
 
 @dataclass(frozen=True, slots=True)

@@ -8,15 +8,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from govdata.config.settings import get_settings
+
 from playwright.async_api import async_playwright
 
 from govdata.application.dto.identificacion_cedula_dto import CedulaCandidateDTO
 from govdata.application.ports.consulta_cedula_port import ConsultaCedulaPort
-from govdata.domain.exceptions.domain_exceptions import GovDataError
-
-
-class FuenteCedulaNoDisponibleError(GovDataError):
-    """La fuente no pudo ser consultada sin intentar evadir sus controles."""
+from govdata.domain.exceptions.domain_exceptions import FuenteCedulaNoDisponibleError
 
 
 @dataclass(frozen=True, slots=True)
@@ -45,7 +43,9 @@ class ConsultaEcuadorAsyncAdapter(ConsultaCedulaPort):
                     page.set_default_timeout(self._timeout_ms)
                     await page.goto(self.url, wait_until="domcontentloaded")
                     contenido = (await page.content()).lower()
-                    if "just a moment" in contenido or "challenge" in contenido or "captcha" in contenido:
+                    if get_settings().scraping.rechazar_captcha_antibot and (
+                        "just a moment" in contenido or "challenge" in contenido or "captcha" in contenido
+                    ):
                         raise FuenteCedulaNoDisponibleError("SOURCE_UNAVAILABLE: challenge anti-bot de Consultas Ecuador")
                     if not all((self._selectores.apellidos, self._selectores.nombres, self._selectores.consultar, self._selectores.filas_resultado)):
                         raise FuenteCedulaNoDisponibleError("SOURCE_UNAVAILABLE: selectores reales aún no aprobados")

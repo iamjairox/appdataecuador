@@ -17,6 +17,7 @@ from dataclasses import dataclass
 from datetime import date, datetime
 
 from govdata.domain.exceptions.domain_exceptions import FuncionarioInvalidoError
+from govdata.domain.rules.texto_humano import reparar_texto_humano
 from govdata.domain.value_objects.area_relevante import AreaRelevante
 from govdata.domain.value_objects.cargo import Cargo
 
@@ -56,7 +57,7 @@ class Funcionario:
             raise FuncionarioInvalidoError(
                 f"score_clasificacion fuera de rango [0, 100]: {self.score_clasificacion}"
             )
-        self.dependencia = self.dependencia.strip()
+        self.dependencia = reparar_texto_humano(self.dependencia)
 
     @property
     def vigente(self) -> bool:

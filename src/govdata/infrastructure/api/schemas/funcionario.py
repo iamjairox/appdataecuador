@@ -25,6 +25,7 @@ class FuncionarioResponseSchema(BaseModel):
     cedula: str | None = None
     correo: str | None = None
     telefono: str | None = None
+    extension_telefonica: str | None = None
     cargo: str
     dependencia: str
     area: str
@@ -44,7 +45,9 @@ class FuncionarioConsolidadoSchema(BaseModel):
     cedula: str | None = None
     correo: str | None = None
     telefono: str | None = None
+    extension_telefonica: str | None = None
     celular: str | None = None
+    correo_personal: str | None = None
     cargo: str | None = None
     dependencia: str | None = None
     registro_foro: str | None = None

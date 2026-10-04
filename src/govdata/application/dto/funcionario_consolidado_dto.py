@@ -7,6 +7,7 @@ final por Entidad (Submodulo 8.11). Forma EXACTA pedida por el cliente:
       "correo": "",
       "telefono": "",
       "celular": "",
+      "correo_personal": "",
       "cargo": "",
       "dependencia": "",
       "registro_foro": "",
@@ -31,7 +32,10 @@ class FuncionarioConsolidadoDTO:
     cedula: str | None = None
     correo: str | None = None
     telefono: str | None = None
+    extension_telefonica: str | None = None
+    """Columna "Extension telefonica" del numeral 2 DPE, aparte del telefono."""
     celular: str | None = None
+    correo_personal: str | None = None
     cargo: str | None = None
     dependencia: str | None = None
     registro_foro: str | None = None

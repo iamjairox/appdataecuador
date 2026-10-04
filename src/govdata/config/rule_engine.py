@@ -22,6 +22,7 @@ from pathlib import Path
 import yaml
 
 from govdata.domain.exceptions.domain_exceptions import ConfiguracionInvalidaError
+from govdata.domain.rules.normalizacion import normalizar_texto
 from govdata.domain.rules.reglas_configurables import (
     ReglasCache,
     ReglasClasificacion,
@@ -60,7 +61,13 @@ def cargar_rule_engine(directorio_reglas: Path | str | None = None) -> RuleEngin
     campos = sinonimos_raw.get("campos")
     if not isinstance(campos, dict) or not campos:
         raise ConfiguracionInvalidaError("sinonimos_campos.yaml requiere una clave 'campos' no vacia")
-    normalizacion = ReglasNormalizacion(sinonimos_por_campo=campos)
+    # Opcional: sin el archivo, el orden del nombre se toma solo del encabezado.
+    ruta_nombres_pila = directorio / "nombres_pila.yaml"
+    nombres_pila = _leer_yaml(ruta_nombres_pila).get("nombres_pila", []) if ruta_nombres_pila.exists() else []
+    normalizacion = ReglasNormalizacion(
+        sinonimos_por_campo=campos,
+        nombres_pila=frozenset(normalizar_texto(str(n)) for n in nombres_pila if str(n).strip()),
+    )
 
     clasificacion_raw = _leer_yaml(directorio / "clasificacion_areas.yaml")
     areas = clasificacion_raw.get("areas")

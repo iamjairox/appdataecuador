@@ -1,14 +1,14 @@
 import { NavLink } from 'react-router-dom'
-import { AlertTriangle, Building2, Home, Layers, ListChecks, Users, X } from 'lucide-react'
+import { Building2, Home, LogOut, Scale, X } from 'lucide-react'
+import { apiClient } from '../api/client'
 import { cn } from '../lib/cn'
 
 const ENLACES = [
   { to: '/', label: 'Inicio', icon: Home, end: true },
   { to: '/entidades', label: 'Entidades', icon: Building2 },
-  { to: '/funcionarios', label: 'Funcionarios', icon: Users },
-  { to: '/alertas', label: 'Alertas', icon: AlertTriangle },
-  { to: '/jobs', label: 'Trabajos', icon: ListChecks },
-  { to: '/operaciones', label: 'Operaciones masivas', icon: Layers },
+  { to: '/abogados-ecuador', label: 'Abogados del Ecuador', icon: Scale },
+  { to: '/auditores-ecuador', label: 'Auditores Ecuador', icon: Scale },
+  { to: '/companias', label: 'Compañías', icon: Building2 },
 ]
 
 interface SidebarProps {
@@ -27,6 +27,15 @@ interface SidebarProps {
  * (estático, siempre visible, sin overlay).
  */
 export function Sidebar({ abierto, onCerrar }: SidebarProps) {
+  async function cerrarSesion() {
+    try {
+      await apiClient.post('/api/v1/auth/salir')
+    } finally {
+      window.dispatchEvent(new Event('dataok:sesion-cerrada'))
+      onCerrar()
+    }
+  }
+
   return (
     <>
       {abierto && (
@@ -40,7 +49,7 @@ export function Sidebar({ abierto, onCerrar }: SidebarProps) {
         )}
       >
         <div className="flex h-14 items-center justify-between border-b border-slate-200 px-4">
-          <span className="text-base font-semibold tracking-tight text-slate-900">GovData</span>
+          <span className="text-base font-semibold tracking-tight text-slate-900">DataOK</span>
           <button
             type="button"
             onClick={onCerrar}
@@ -72,6 +81,16 @@ export function Sidebar({ abierto, onCerrar }: SidebarProps) {
             </li>
           ))}
         </ul>
+        <div className="mt-auto border-t border-slate-200 p-3">
+          <button
+            type="button"
+            onClick={() => void cerrarSesion()}
+            className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+          >
+            <LogOut className="size-4 shrink-0" aria-hidden="true" />
+            Cerrar sesión
+          </button>
+        </div>
       </nav>
     </>
   )

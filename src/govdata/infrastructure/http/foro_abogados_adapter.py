@@ -31,6 +31,7 @@ import requests
 
 from govdata.application.dto.registro_foro_dto import RegistroForoDTO
 from govdata.application.ports.foro_abogados_port import ForoAbogadosPort
+from govdata.config.settings import get_settings
 from govdata.config.logging_config import get_logger
 from govdata.domain.entities.persona import Persona
 from govdata.domain.entities.persona_master import PersonaMaster
@@ -128,7 +129,9 @@ class ForoAbogadosAdapter(ForoAbogadosPort):
             raise ConsultaForoFallidaError("El Foro de Abogados respondio una pagina vacia")
 
         texto_minusculas = texto_normalizado.lower()
-        if any(palabra in texto_minusculas for palabra in _PALABRAS_CAPTCHA):
+        if get_settings().scraping.rechazar_captcha_antibot and any(
+            palabra in texto_minusculas for palabra in _PALABRAS_CAPTCHA
+        ):
             logger.error("foro_captcha_detectado")
             raise ConsultaForoPermanenteError("El Foro de Abogados exige resolver un CAPTCHA")
 

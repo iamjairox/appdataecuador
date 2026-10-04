@@ -49,7 +49,7 @@ export function OperacionesMasivasPage() {
     <>
       <PageHeader
         title="Operaciones masivas"
-        description="Ejecuta consulta o actualización sobre todas las entidades activas registradas en GovData."
+        description="Ejecuta consulta o actualización sobre todas las entidades activas registradas en DataOK."
       />
 
       <Alert tone="info">
@@ -159,7 +159,7 @@ function ConsultaMasivaCard({ cantidadActivas }: OperacionCardProps) {
           <div className="flex flex-col items-center gap-3 py-6 text-center">
             <Spinner label="Ejecutando consulta masiva…" />
             <p className="max-w-sm text-sm text-slate-500">
-              GovData está consultando y consolidando información de todas las entidades activas. Esto puede
+              DataOK está consultando y consolidando información de todas las entidades activas. Esto puede
               tardar varios minutos.
             </p>
           </div>
@@ -253,7 +253,7 @@ function ActualizacionMasivaCard({ cantidadActivas }: OperacionCardProps) {
           <div className="flex flex-col items-center gap-3 py-6 text-center">
             <Spinner label="Ejecutando actualización masiva…" />
             <p className="max-w-sm text-sm text-slate-500">
-              GovData está actualizando todas las entidades activas ignorando la caché. Esto puede tardar
+              DataOK está actualizando todas las entidades activas ignorando la caché. Esto puede tardar
               varios minutos.
             </p>
           </div>

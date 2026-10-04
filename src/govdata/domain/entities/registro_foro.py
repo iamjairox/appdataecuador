@@ -37,6 +37,8 @@ class RegistroForo:
     provincia: str | None = None
     estado: EstadoRegistroForo = EstadoRegistroForo.DESCONOCIDO
     cedula: str | None = None
+    correo_personal: str | None = None
+    celular_personal: str | None = None
     numero_version: int = 1
     vigente: bool = True
     fuente: str = "foro_abogados"

@@ -35,7 +35,7 @@ from govdata.domain.rules.generador_clave_registro_foro import generar_clave_reg
 from govdata.domain.rules.normalizacion import normalizar_texto
 from govdata.domain.value_objects.tipo_cambio_foro import TipoCambioForo
 
-_CAMPOS_COMPARABLES = ("nombre_completo", "provincia", "estado", "registro", "cedula")
+_CAMPOS_COMPARABLES = ("nombre_completo", "provincia", "estado", "registro", "cedula", "correo", "celular")
 _TIPO_CAMBIO_POR_CAMPO: dict[str, TipoCambioForo] = {
     "provincia": TipoCambioForo.CAMBIO_PROVINCIA,
     "estado": TipoCambioForo.CAMBIO_ESTADO,

@@ -28,6 +28,18 @@ from tests.unit.application.fakes_modulo8 import (
     FakeRegistroForoVersionRepository,
 )
 
+
+class _PersonaRepository:
+    def __init__(self) -> None:
+        self.guardadas: list[Persona] = []
+
+    def guardar(self, persona: Persona) -> Persona:
+        self.guardadas.append(persona)
+        return persona
+
+    def buscar_por_cedula(self, cedula: str) -> Persona | None:
+        return None
+
 _AHORA = datetime(2026, 1, 1, tzinfo=UTC)
 _RULE_ENGINE = cargar_rule_engine_foro()
 
@@ -67,6 +79,18 @@ def _servicio(foro_port: FakeForoAbogadosPort, reglas: RuleEngineForo | None = N
 
 
 class TestEnriquecer:
+    def test_persiste_cedula_confirmada_por_el_foro(self) -> None:
+        foro = FakeForoAbogadosPort([[RegistroForoDTO(registro="R1", cedula="0105867949")]])
+        servicio, *_ = _servicio(foro)
+        repositorio = _PersonaRepository()
+        servicio._persona_repository = repositorio
+        persona = Persona(nombre_completo=NombreCompleto("Juan", "Perez"), id=1)
+
+        servicio.enriquecer(_pm(), persona)
+
+        assert persona.cedula == "0105867949"
+        assert repositorio.guardadas == [persona]
+
     def test_primer_registro_encontrado_es_dato_nuevo(self) -> None:
         foro = FakeForoAbogadosPort([[RegistroForoDTO(nombre_completo="Juan Perez", registro="R1", provincia="Pichincha")]])
         servicio, consulta_repo, registro_repo, alerta_repo, _evento_repo = _servicio(foro)

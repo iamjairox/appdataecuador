@@ -7,9 +7,7 @@ interface EntidadSubnavProps {
 
 const PESTANAS = [
   { suffix: '', label: 'Detalle' },
-  { suffix: '/alertas', label: 'Alertas' },
-  { suffix: '/cambios', label: 'Cambios' },
-  { suffix: '/consulta', label: 'Consultar' },
+  { suffix: '/consulta', label: 'Consulta controlada' },
 ]
 
 /** Subnavegación por pestañas para las vistas de una misma entidad (Módulo 10: detalle/alertas/cambios/consulta). */

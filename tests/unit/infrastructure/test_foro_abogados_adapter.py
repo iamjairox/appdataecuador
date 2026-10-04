@@ -4,11 +4,10 @@ from __future__ import annotations
 
 import pytest
 
-from govdata.application.dto.registro_foro_dto import RegistroForoDTO
 from govdata.infrastructure.scraping.playwright.foro_abogados_adapter import (
     ForoAbogadosPlaywrightAdapter,
-    SelectoresForoAbogados,
     FuenteForoNoDisponibleError,
+    SelectoresForoAbogados,
 )
 from govdata.infrastructure.scraping.playwright.selectors import foro_abogados_selectors
 
@@ -19,7 +18,11 @@ class TestSelectoresForoAbogados:
     def test_selectores_por_defecto(self) -> None:
         selectores = SelectoresForoAbogados()
         assert selectores.input_cedula == "#CEDULA"
-        assert selectores.boton_ceptar == "#btnValidarReg"
+        assert selectores.boton_aceptar == "#btnValidarReg"
+        assert selectores.campo_email == "#EMAIL"
+        assert selectores.campo_celular == "#CELULAR"
+        assert selectores.campo_nombres == "#NOMBRES"
+        assert selectores.campo_apellidos == "#APELLIDOS"
         assert selectores.tabla_resultados == "table"
         assert selectores.filas_resultados == "table tbody tr"
 
@@ -41,18 +44,15 @@ class TestForoAbogadosPlaywrightAdapter:
 
     def test_detectar_captcha(self) -> None:
         adapter = ForoAbogadosPlaywrightAdapter()
-        assert adapter._detectar_captcha("captcha") is True
-        assert adapter._detectar_captcha("recaptcha") is True
-        assert adapter._detectar_captcha("g-recaptcha") is True
-        assert adapter._detectar_captcha("challenge") is True
-        assert adapter._detectar_captcha("just a moment") is True
+        assert adapter._detectar_captcha("Just a moment") is True
+        assert adapter._detectar_captcha("Checking your browser") is True
+        assert adapter._detectar_captcha("formulario con recaptcha embebido") is False
         assert adapter._detectar_captcha("normal content") is False
 
-    def test_buscar_por_persona_no_soportado(self) -> None:
-        """El Foro de Abogados solo permite búsqueda por cédula, no por nombre."""
+    def test_detectar_confirmacion_de_registro_existente(self) -> None:
         adapter = ForoAbogadosPlaywrightAdapter()
-        with pytest.raises(FuenteForoNoDisponibleError):
-            adapter.buscar_por_persona(None)  # type: ignore
+        assert adapter._requiere_confirmacion_registro("La cédula ya se encuentra registrada") is True
+        assert adapter._requiere_confirmacion_registro("No se encontraron datos") is False
 
     def test_buscar_por_persona_master_no_soportado(self) -> None:
         """El Foro de Abogados solo permite búsqueda por cédula, no por nombre."""

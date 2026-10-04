@@ -12,9 +12,6 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from govdata.application.dto.resultado_validacion_abogado_dto import (
-    ResultadoDirectorioAutorizadoDTO,
-)
 from govdata.application.services.auditoria_consulta_fuente_service import (
     AuditoriaConsultaFuenteService,
 )
@@ -22,7 +19,10 @@ from govdata.application.services.auditoria_orquestacion_service import Auditori
 from govdata.application.services.cola_trabajos_orquestador_service import (
     ColaTrabajosOrquestadorService,
 )
-from govdata.application.use_cases.validar_abogado_use_case import ValidarAbogadoUseCase
+from govdata.application.use_cases.validar_abogado_use_case import (
+    ResultadoValidacionAbogado,
+    ValidarAbogadoUseCase,
+)
 from govdata.domain.entities.persona_master import PersonaMaster
 from govdata.infrastructure.api.dependencies import get_container, get_sesion, verificar_api_key
 from govdata.infrastructure.api.schemas.alerta import AlertaFuncionarioResponseSchema
@@ -49,10 +49,10 @@ from govdata.infrastructure.persistence.postgresql.repositories.sqlalchemy_perso
 from govdata.infrastructure.persistence.postgresql.repositories.sqlalchemy_trabajo_orquestador_repository import (
     SqlAlchemyTrabajoOrquestadorRepository,
 )
-from govdata.infrastructure.scraping.playwright.consulta_ecuador_adapter import (
-    ConsultaEcuadorAsyncAdapter,
-    SelectoresConsultaEcuador,
+from govdata.infrastructure.scraping.playwright.foro_abogados_adapter import (
+    ForoAbogadosPlaywrightAdapter,
 )
+from govdata.infrastructure.scraping.playwright.fuentes_cedula import fuentes_consulta_cedula
 
 router = APIRouter(prefix="/funcionarios", tags=["Funcionarios"], dependencies=[Depends(verificar_api_key)])
 
@@ -143,20 +143,75 @@ async def validar_abogado(persona_master_id: int, sesion: Annotated[Session, Dep
     if fila is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cargo vigente no encontrado")
     funcionario, entidad = fila
-    resultado_autorizado = ResultadoDirectorioAutorizadoDTO(
-        nombre=f"{persona.nombres} {persona.apellidos}".strip(), puesto=funcionario.cargo,
-        unidad=funcionario.dependencia, ciudad=(entidad.metadata_extra or {}).get("ciudad"),
-        telefono=persona.telefono, celular=None, correo=persona.correo,
-    )
+    
+    fuentes = fuentes_consulta_cedula()
     caso = ValidarAbogadoUseCase(
-        ConsultaEcuadorAsyncAdapter(SelectoresConsultaEcuador()),
-        get_container().foro_abogados_adapter(),
+        fuentes[0],
+        ForoAbogadosPlaywrightAdapter(),
         AuditoriaConsultaFuenteService(SqlAlchemyConsultaFuenteLogRepository(sesion)),
         ColaTrabajosOrquestadorService(SqlAlchemyTrabajoOrquestadorRepository(sesion)),
         AuditoriaOrquestacionService(SqlAlchemyAuditoriaEtapaRepository(sesion)),
+        SqlAlchemyPersonaRepository(sesion),
+        fuentes[1],
+        fuentes[2],
+        fuentes[3],
     )
-    job_id, resultado = await caso.ejecutar(persona_master_id, persona)
-    return {"job_id": job_id, "estado": resultado.estado.value, "resultado": resultado_autorizado.to_dict()}
+    resultado: ResultadoValidacionAbogado = await caso.ejecutar(persona_master_id, persona)
+
+    # ValidarAbogadoUseCase resuelve la cédula y devuelve el resultado
+    # inmediato. Para que el listado "Datos ya consultados" y los perfiles
+    # puedan reutilizarlo después, el resultado del Foro debe pasar además
+    # por el servicio canónico de enriquecimiento, que crea RegistroForo,
+    # historial y eventos. Antes este paso faltaba: la pantalla recibía la
+    # respuesta 202 pero no había nada persistido que listar.
+    registro_persistido: dict | None = None
+    if resultado.cedula:
+        enriquecimiento = get_container().crear_enriquecimiento_foro_service(sesion)
+        enriquecimiento.enriquecer(master, persona, job_id=resultado.job_id)
+        registros = get_container().crear_perfil_consolidado_service(sesion).construir_foro(persona_master_id).get(
+            "registros", []
+        )
+        registro_persistido = registros[0] if registros else None
+    
+    from govdata.infrastructure.api.routes.entidades import _ultimo_intento_externo
+    intento = _ultimo_intento_externo(sesion, persona_master_id)
+    estado_consulta_externa = (
+        "error" if intento is None or not intento.exito else
+        "completada" if registro_persistido else "sin_coincidencia"
+    )
+    # Construir respuesta con toda la información requerida
+    # La cédula se incluye para consistencia del sistema (ahora se persiste en la base de datos)
+    return {
+        "job_id": resultado.job_id,
+        "estado": resultado.estado,
+        "estado_consulta_externa": estado_consulta_externa,
+        "estado_identificacion": resultado.estado_identificacion,
+        "confianza": resultado.confianza,
+        # Información del funcionario (desde Transparencia)
+        "institucion": (entidad.metadata_extra or {}).get("nombre", "") or entidad.nombre,
+        "tipo_institucion": (entidad.metadata_extra or {}).get("tipo_institucion"),
+        "provincia": (entidad.metadata_extra or {}).get("provincia", ""),
+        "mes_transparencia": (entidad.metadata_extra or {}).get("mes_transparencia", ""),
+        "nombre_completo": str(persona.nombre_completo),
+        "cargo": funcionario.cargo,
+        "dependencia": funcionario.dependencia,
+        "area_normalizada": funcionario.area_clasificada.value,
+        "correo_institucional": str(persona.correo) if persona.correo else None,
+        "telefono_institucional": str(persona.telefono) if persona.telefono else None,
+        "ciudad": (entidad.metadata_extra or {}).get("ciudad"),
+        # Cédula (ahora se persiste en la base de datos y aparece en todas las consultas)
+        "cedula": persona.cedula or resultado.cedula,
+        # Información profesional (Foro de Abogados)
+        "registro_foro": (registro_persistido or {}).get("registro", resultado.registro_foro),
+        "estado_foro": (registro_persistido or {}).get("estado", resultado.estado_foro),
+        "provincia_foro": (registro_persistido or {}).get("provincia", resultado.provincia_foro),
+        "correo_personal": (registro_persistido or {}).get("correo_personal", resultado.correo_personal),
+        "celular_personal": (registro_persistido or {}).get("celular_personal", resultado.celular_personal),
+        # Estado de validación
+        "fuente": resultado.fuente,
+        "fecha_consulta": resultado.fecha_consulta.isoformat() if resultado.fecha_consulta else None,
+        "detalle": resultado.detalle,
+    }
 
 
 @router.get(

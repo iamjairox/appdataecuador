@@ -23,9 +23,9 @@ SELECTOR_BOTON_CONSULTAR = "button[type='submit'], input[type='submit']"
 # Selectores de resultados
 SELECTOR_TABLA_RESULTADOS = "table"
 SELECTOR_FILAS_RESULTADOS = "table tbody tr"
-SELECTOR_CEDULA = "table tbody tr td:nth-child(1)"
-SELECTOR_NOMBRE_COMPLETO = "table tbody tr td:nth-child(2)"
-SELECTOR_EDAD = "table tbody tr td:nth-child(3)"
+SELECTOR_CEDULA = "td:nth-child(1)"
+SELECTOR_NOMBRE_COMPLETO = "td:nth-child(2)"
+SELECTOR_EDAD = "td:nth-child(3)"
 
 # Selectores de estado
 SELECTOR_SIN_RESULTADOS = "text=No se encontraron resultados"

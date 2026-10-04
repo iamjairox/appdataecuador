@@ -1,6 +1,6 @@
 """Regla de dominio: Clasificador Inteligente -- Submodulo 4.3.
 
-Decide si una fila normalizada pertenece a un area relevante (Juridica o
+Decide si una fila normalizada pertenece a un area especializada (Juridica o
 Financiera) comparando su cargo contra el catalogo configurable
 (`ReglasClasificacion.cargos_por_area`, cargado desde
 `config/rules/clasificacion_areas.yaml`). Solo `token_sort_ratio` (NO
@@ -90,10 +90,11 @@ def _nivel_confianza(score: float, reglas: ReglasClasificacion) -> NivelConfianz
 def clasificar_funcionario(
     fila: FilaExtraidaDTO, reglas: ReglasClasificacion
 ) -> FuncionarioClasificadoDTO | None:
-    """Retorna el veredicto de clasificacion, o `None` si el cargo no
-    supera `reglas.umbral_score_minimo` NI matchea por palabra clave (la
-    fila se descarta -- NO se persisten funcionarios fuera de las areas
-    relevantes).
+    """Retorna el veredicto de clasificacion para toda fila con cargo.
+
+    Cuando no hay coincidencia especializada, la fila se conserva como
+    ``general``. Esto permite listar todos los contactos publicados por
+    Transparencia sin ampliar el grupo que se consulta en fuentes externas.
 
     Tres mecanismos, en orden -- el primero que acierte gana:
     1. Fuzzy match contra `cargos_por_area` (el original, sin cambios).
@@ -148,4 +149,11 @@ def clasificar_funcionario(
             motivo_clasificacion=MotivoClasificacion.DEPENDENCIA,
         )
 
-    return None
+    return FuncionarioClasificadoDTO(
+        fila=fila,
+        area="general",
+        cargo_normalizado=fila.cargo,
+        score=0.0,
+        nivel_confianza=NivelConfianzaClasificacion.BAJA,
+        motivo_clasificacion=MotivoClasificacion.SIN_AREA_ESPECIALIZADA,
+    )

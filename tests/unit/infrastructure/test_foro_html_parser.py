@@ -9,6 +9,7 @@ _CATALOGO = CatalogoCamposForo(
     campo_por_etiqueta={
         "NO REGISTRO": "registro", "PROVINCIA": "provincia", "ESTADO": "estado",
         "NOMBRE COMPLETO": "nombre_completo", "CEDULA": "cedula",
+        "CELULAR": "celular", "CORREO": "correo", "EMAIL": "correo",
     }
 )
 
@@ -45,6 +46,18 @@ class TestParsearRegistroForoParesSueltos:
         assert registro is not None
         assert registro.nombre_completo == "Juan Perez"
         assert registro.provincia == "Guayas"
+
+    def test_extrae_celular_y_correo(self) -> None:
+        html = """
+        <table>
+            <tr><td>Celular</td><td>0991234567</td></tr>
+            <tr><td>Email</td><td>jperez@gmail.com</td></tr>
+        </table>
+        """
+        registro = parsear_registro_foro(html, _CATALOGO)
+        assert registro is not None
+        assert registro.celular == "0991234567"
+        assert registro.correo == "jperez@gmail.com"
 
     def test_forma_mixta_tabla_y_pares_sueltos(self) -> None:
         html = """

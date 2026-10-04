@@ -21,7 +21,7 @@ from govdata.application.dto.registro_foro_dto import RegistroForoDTO
 from govdata.domain.rules.normalizador_foro import normalizar_etiqueta_campo
 from govdata.domain.rules.reglas_foro import CatalogoCamposForo
 
-_CAMPOS_DTO = frozenset({"nombre_completo", "registro", "provincia", "estado", "cedula"})
+_CAMPOS_DTO = frozenset({"nombre_completo", "registro", "provincia", "estado", "cedula", "celular", "correo"})
 
 
 def _desde_tablas(soup: BeautifulSoup, catalogo: CatalogoCamposForo) -> dict[str, str]:
@@ -50,9 +50,40 @@ def _desde_pares_sueltos(soup: BeautifulSoup, catalogo: CatalogoCamposForo) -> d
         if not isinstance(contenedor, Tag):
             continue
         texto_completo = contenedor.get_text(" ", strip=True)
-        valor = texto_completo.replace(etiqueta_texto, "", 1).strip(" : ")
+        valor = texto_completo.replace(etiqueta_texto, "", 1).strip(": ")
         if valor:
             campos.setdefault(campo, valor)
+    return campos
+
+
+def _desde_inputs(soup: BeautifulSoup, catalogo: CatalogoCamposForo) -> dict[str, str]:
+    """Extrae valores de inputs por su ID (estructura real del formulario).
+    
+    El formulario del Foro de Abogados tiene inputs con IDs específicos
+    como EMAIL, CELULAR, etc.
+    """
+    campos: dict[str, str] = {}
+    
+    # Mapeo de IDs de inputs a campos del DTO
+    id_a_campo = {
+        "EMAIL": "correo",
+        "CELULAR": "celular",
+        "CEDULA": "cedula",
+        "NOMBRES": "nombre_completo",
+        "APELLIDOS": "nombre_completo",  # Si está separado
+    }
+    
+    for input_tag in soup.find_all("input"):
+        input_id = str(input_tag.get("id", "")).upper()
+        if input_id in id_a_campo:
+            valor = str(input_tag.get("value", "")).strip()
+            if valor:
+                campo = id_a_campo[input_id]
+                # Si ya tenemos nombre_completo de NOMBRES, no lo sobrescribamos con APELLIDOS
+                if campo == "nombre_completo" and "nombre_completo" in campos:
+                    continue
+                campos.setdefault(campo, valor)
+    
     return campos
 
 
@@ -67,11 +98,18 @@ def parsear_registro_foro(html: str, catalogo: CatalogoCamposForo) -> RegistroFo
     campos = _desde_tablas(soup, catalogo)
     for campo, valor in _desde_pares_sueltos(soup, catalogo).items():
         campos.setdefault(campo, valor)
+    for campo, valor in _desde_inputs(soup, catalogo).items():
+        campos.setdefault(campo, valor)
 
     if not campos:
         return None
 
     return RegistroForoDTO(
-        nombre_completo=campos.get("nombre_completo"), registro=campos.get("registro"),
-        provincia=campos.get("provincia"), estado=campos.get("estado"), cedula=campos.get("cedula"),
+        nombre_completo=campos.get("nombre_completo"),
+        registro=campos.get("registro"),
+        provincia=campos.get("provincia"),
+        estado=campos.get("estado"),
+        cedula=campos.get("cedula"),
+        celular=campos.get("celular"),
+        correo=campos.get("correo"),
     )

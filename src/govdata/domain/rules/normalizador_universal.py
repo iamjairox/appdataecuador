@@ -14,18 +14,74 @@ como datos (`dict[str, list[str]]`).
 
 from __future__ import annotations
 
+import re
+
 from rapidfuzz import fuzz
 
 from govdata.application.dto.fila_extraida_dto import FilaExtraidaDTO
 from govdata.application.dto.tabla_extraida_dto import TablaExtraidaDTO
 from govdata.domain.rules.normalizacion import normalizar_texto
+from govdata.domain.rules.texto_humano import reparar_texto_humano
 from govdata.domain.rules.reglas_configurables import ReglasNormalizacion
 from govdata.domain.rules.segmentador_nombre import (
+    OrdenNombre,
+    detectar_orden_por_contenido,
     detectar_orden_por_encabezado,
     segmentar_nombre_completo,
 )
+from govdata.domain.value_objects.telefono import Telefono
 
 UMBRAL_MATCH_ENCABEZADO_DEFECTO = 80.0
+
+_LONGITUD_MAXIMA_EXTENSION = 20
+_PREFIJO_EXTENSION = re.compile(r"^(EXTENSI[OÓ]N|EXT)\.?\s*", re.IGNORECASE)
+_EXTENSION_VALIDA = re.compile(r"^\d+(?:\s*(?:[,/;-]|\bY\b)\s*\d+)*$", re.IGNORECASE)
+
+
+def limpiar_extension_telefonica(valor: str | None) -> str | None:
+    """Solo acepta valores con forma de extension ("103", "101 / 102",
+    "Ext. 1045", "103.0" de Excel). Muestreo real del numeral 2 DPE: 24
+    filas traen 'NO APLICA DEBIDO A "Que no posse extension en su
+    oficina"' en esa columna -- no es una extension, se trata como vacio
+    (ademas desbordaba la columna VARCHAR(20) y hacia fallar la
+    persistencia)."""
+    if not valor:
+        return None
+    limpio = " ".join(_PREFIJO_EXTENSION.sub("", valor.strip()).split())
+    if re.fullmatch(r"\d+\.0", limpio):
+        limpio = limpio[:-2]
+    if not _EXTENSION_VALIDA.fullmatch(limpio) or len(limpio) > _LONGITUD_MAXIMA_EXTENSION:
+        return None
+    return limpio
+
+
+_SEPARADORES_TELEFONOS = re.compile(r"\s*(?:\n|/|;|,|\s+y\s+|\s+o\s+)\s*", re.IGNORECASE)
+
+
+def limpiar_telefono(valor: str | None) -> str | None:
+    """Si la celda trae varios numeros ("(07) 2647-117\\n(07) 2647-118",
+    "022 345 678 / 022 345 679"), devuelve el primero que el Value Object
+    `Telefono` acepta. Antes se pasaba la celda completa y el Value Object
+    la rechazaba entera: el telefono se perdia (casos reales: Simon Bolivar
+    y Zapotillo). Si ningun fragmento es valido se devuelve la celda tal
+    cual, para que la validacion posterior decida como siempre."""
+    if not valor or not valor.strip():
+        return None
+    for fragmento in _SEPARADORES_TELEFONOS.split(valor.strip()):
+        if fragmento and Telefono.crear_opcional(fragmento) is not None:
+            return fragmento
+    return valor.strip()
+
+
+def orden_nombre_de_la_tabla(
+    encabezado: str, nombres_completos: list[str], reglas: ReglasNormalizacion
+) -> OrdenNombre:
+    """El contenido manda sobre el encabezado solo con una mayoria clara
+    (`detectar_orden_por_contenido`); si no, se usa el encabezado."""
+    return detectar_orden_por_contenido(nombres_completos, reglas.nombres_pila) or detectar_orden_por_encabezado(
+        encabezado
+    )
+
 
 _CAMPO_NOMBRE_COMPLETO = "nombre_completo"
 
@@ -88,13 +144,22 @@ def normalizar_tabla(tabla: TablaExtraidaDTO, reglas: ReglasNormalizacion) -> li
     simplemente queda vacio/`None` -- nunca lanza excepcion por fila.
     """
     mapeo = _mapear_encabezados(tabla.encabezados, reglas.sinonimos_por_campo, UMBRAL_MATCH_ENCABEZADO_DEFECTO)
+    # El orden de una columna combinada se decide UNA vez por archivo
+    # (encabezado + votacion del contenido), nunca fila por fila.
+    orden_por_encabezado = {
+        encabezado: orden_nombre_de_la_tabla(
+            encabezado, [(fila.get(encabezado) or "") for fila in tabla.filas], reglas
+        )
+        for encabezado, campo in mapeo.items()
+        if campo == _CAMPO_NOMBRE_COMPLETO
+    }
 
     filas_normalizadas: list[FilaExtraidaDTO] = []
     for fila_cruda in tabla.filas:
         valores: dict[str, str] = {}
         encabezado_de: dict[str, str] = {}
         for encabezado, campo in mapeo.items():
-            valor = (fila_cruda.get(encabezado) or "").strip()
+            valor = reparar_texto_humano(fila_cruda.get(encabezado))
             if valor and campo not in valores:
                 valores[campo] = valor
                 encabezado_de[campo] = encabezado
@@ -107,7 +172,9 @@ def normalizar_tabla(tabla: TablaExtraidaDTO, reglas: ReglasNormalizacion) -> li
         if not nombres and not apellidos and _CAMPO_NOMBRE_COMPLETO in valores:
             nombre_completo_original = valores[_CAMPO_NOMBRE_COMPLETO]
             segmentacion = segmentar_nombre_completo(
-                nombre_completo_original, detectar_orden_por_encabezado(encabezado_de[_CAMPO_NOMBRE_COMPLETO])
+                nombre_completo_original,
+                detectar_orden_por_contenido([nombre_completo_original], reglas.nombres_pila, minimo_votos=1, mayoria=1.0)
+                or orden_por_encabezado[encabezado_de[_CAMPO_NOMBRE_COMPLETO]]
             )
             nombres, apellidos = segmentacion.nombres, segmentacion.apellidos
             orden, confianza = segmentacion.orden.value, segmentacion.confianza.value
@@ -122,7 +189,8 @@ def normalizar_tabla(tabla: TablaExtraidaDTO, reglas: ReglasNormalizacion) -> li
                 cargo=valores.get("cargo", ""),
                 dependencia=valores.get("dependencia", ""),
                 correo=valores.get("correo"),
-                telefono=valores.get("telefono"),
+                telefono=limpiar_telefono(valores.get("telefono")),
+                extension_telefonica=limpiar_extension_telefonica(valores.get("extension_telefonica")),
                 nombre_completo_original=nombre_completo_original,
                 orden_nombre=orden,
                 confianza_segmentacion=confianza,

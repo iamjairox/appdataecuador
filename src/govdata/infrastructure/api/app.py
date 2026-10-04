@@ -9,12 +9,13 @@ cada request abre su propia `Session` via `dependencies.get_sesion`."""
 
 from __future__ import annotations
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from govdata.config.settings import ApiSettings, get_settings
+from govdata.infrastructure.api.dependencies import requerir_sesion
 from govdata.domain.exceptions.domain_exceptions import GovDataError
 from govdata.infrastructure.api.exception_handlers import (
     manejar_error_inesperado,
@@ -24,7 +25,7 @@ from govdata.infrastructure.api.exception_handlers import (
 )
 from govdata.infrastructure.api.middleware.rate_limit import RateLimitMiddleware
 from govdata.infrastructure.api.middleware.request_id import RequestIdMiddleware
-from govdata.infrastructure.api.routes import entidades, funcionarios, jobs, sistema
+from govdata.infrastructure.api.routes import abogados, auditores, auth, companias, entidades, funcionarios, jobs, sistema
 
 _DESCRIPCION = """
 Capa de acceso y entrega de GovData Intelligence Platform (Modulo 10).
@@ -69,7 +70,7 @@ def crear_app(api_settings: ApiSettings | None = None) -> FastAPI:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=api_settings.origenes_cors,
-        allow_credentials=False,
+        allow_credentials=api_settings.origenes_cors != ["*"],
         allow_methods=["*"],
         allow_headers=["*"],
     )
@@ -80,9 +81,14 @@ def crear_app(api_settings: ApiSettings | None = None) -> FastAPI:
     app.add_exception_handler(Exception, manejar_error_inesperado)
 
     app.include_router(sistema.router)
-    app.include_router(entidades.router, prefix="/api/v1")
-    app.include_router(funcionarios.router, prefix="/api/v1")
-    app.include_router(jobs.router, prefix="/api/v1")
+    app.include_router(auth.router, prefix="/api/v1")
+    protegido = [Depends(requerir_sesion)]
+    app.include_router(abogados.router, prefix="/api/v1", dependencies=protegido)
+    app.include_router(auditores.router, prefix="/api/v1", dependencies=protegido)
+    app.include_router(companias.router, prefix="/api/v1", dependencies=protegido)
+    app.include_router(entidades.router, prefix="/api/v1", dependencies=protegido)
+    app.include_router(funcionarios.router, prefix="/api/v1", dependencies=protegido)
+    app.include_router(jobs.router, prefix="/api/v1", dependencies=protegido)
 
     return app
 

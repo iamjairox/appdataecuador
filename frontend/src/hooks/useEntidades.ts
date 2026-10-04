@@ -1,6 +1,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   actualizarEntidad,
+  actualizarListadoInstitucional,
   actualizarMasivo,
   consultarEntidad,
   consultarMasivo,
@@ -10,6 +11,8 @@ import {
   obtenerCambiosEntidad,
   obtenerEntidad,
   listarFuncionarios,
+  listarFuncionariosConsultados,
+  obtenerEstadoListadoInstitucional,
 } from '../api/entidades.api'
 import { descargarBlob } from '../lib/descargar-archivo'
 import type {
@@ -30,6 +33,8 @@ export const entidadesKeys = {
   cambios: (id: number, filtros: FiltrosCambio) =>
     [...entidadesKeys.todas, id, 'cambios', filtros] as const,
   alertas: (id: number, page: number) => [...entidadesKeys.todas, id, 'alertas', page] as const,
+  consultados: (id: number) => [...entidadesKeys.todas, id, 'funcionarios-consultados'] as const,
+  estadoListado: (id: number) => [...entidadesKeys.todas, id, 'estado-listado'] as const,
 }
 
 /**
@@ -74,6 +79,34 @@ export function useFuncionariosDeEntidad(entidadId: number | undefined, filtros:
     queryFn: () => listarFuncionarios(entidadId as number, filtros),
     enabled: entidadId !== undefined,
     placeholderData: keepPreviousData,
+  })
+}
+
+export function useFuncionariosConsultados(entidadId: number | undefined) {
+  return useQuery({
+    queryKey: entidadesKeys.consultados(entidadId ?? -1),
+    queryFn: () => listarFuncionariosConsultados(entidadId as number),
+    enabled: entidadId !== undefined,
+  })
+}
+
+export function useEstadoListadoInstitucional(entidadId: number | undefined) {
+  return useQuery({
+    queryKey: entidadesKeys.estadoListado(entidadId ?? -1),
+    queryFn: () => obtenerEstadoListadoInstitucional(entidadId as number),
+    enabled: entidadId !== undefined,
+  })
+}
+
+export function useActualizarListadoInstitucionalMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (entidadId: number) => actualizarListadoInstitucional(entidadId),
+    onSuccess: (_datos, entidadId) => {
+      void queryClient.invalidateQueries({ queryKey: entidadesKeys.funcionarios(entidadId, { page: 1, page_size: 100, solo_vigentes: true }) })
+      void queryClient.invalidateQueries({ queryKey: entidadesKeys.estadoListado(entidadId) })
+      void queryClient.invalidateQueries({ queryKey: entidadesKeys.todas })
+    },
   })
 }
 

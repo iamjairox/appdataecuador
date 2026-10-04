@@ -31,7 +31,7 @@ const MENSAJES_POR_CODIGO: Record<string, string> = {
   VALIDACION_INVALIDA: 'Los parámetros enviados no son válidos.',
   RATE_LIMIT_EXCEDIDO: 'Se realizaron demasiadas solicitudes. Espera un momento e intenta de nuevo.',
   ERROR_INTERNO: 'Ocurrió un error interno en el servidor. Intenta de nuevo más tarde.',
-  ERROR_DE_RED: 'No fue posible comunicarse con el servidor GovData. Verifica tu conexión.',
+  ERROR_DE_RED: 'No fue posible comunicarse con el servidor DataOK. Verifica tu conexión.',
   RESPUESTA_INVALIDA: 'El servidor respondió con datos en un formato inesperado.',
 }
 

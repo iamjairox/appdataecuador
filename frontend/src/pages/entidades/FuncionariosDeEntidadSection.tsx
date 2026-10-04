@@ -229,6 +229,7 @@ export function FuncionariosDeEntidadSection({ entidadId }: FuncionariosDeEntida
                   <Th>Área</Th>
                   <Th>Correo</Th>
                   <Th>Teléfono</Th>
+                  <Th>Extensión</Th>
                   <Th>Estado</Th>
                   <Th>
                     <span className="sr-only">Acciones</span>
@@ -268,6 +269,7 @@ export function FuncionariosDeEntidadSection({ entidadId }: FuncionariosDeEntida
                         <CopyButton value={f.telefono} label="Teléfono" />
                       </div>
                     </Td>
+                    <Td>{f.extension_telefonica ?? '—'}</Td>
                     <Td>
                       <Badge tone={f.vigente ? 'success' : 'neutral'}>{f.vigente ? 'Vigente' : 'No vigente'}</Badge>
                     </Td>
@@ -313,6 +315,7 @@ export function FuncionariosDeEntidadSection({ entidadId }: FuncionariosDeEntida
                     <span className="text-slate-500">Teléfono: {f.telefono ?? '—'}</span>
                     <CopyButton value={f.telefono} label="Teléfono" />
                   </div>
+                  <span className="text-slate-500">Extensión: {f.extension_telefonica ?? '—'}</span>
                 </CardBody>
               </Card>
             ))}

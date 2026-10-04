@@ -142,12 +142,16 @@ class ConsultarEntidadUseCase:
         registros_foro = self._registro_foro_repository.listar_vigentes_por_persona_master(persona_master.id)
         registro_foro = registros_foro[0] if registros_foro else None
 
+        telefono_institucional = str(persona_master.telefono_principal) if persona_master.telefono_principal else None
+
         return FuncionarioConsolidadoDTO(
             nombre_completo=persona_master.nombre_completo.nombre_completo,
             cedula=persona.cedula,
             correo=str(persona_master.correo_principal) if persona_master.correo_principal else None,
-            telefono=str(persona_master.telefono_principal) if persona_master.telefono_principal else None,
-            celular=None,  # Transparencia no distingue telefono/celular -- nunca se inventa el que falta.
+            telefono=telefono_institucional,
+            extension_telefonica=persona.extension_telefonica,
+            celular=registro_foro.celular_personal if registro_foro else None,
+            correo_personal=registro_foro.correo_personal if registro_foro else None,
             cargo=cargo_texto,
             dependencia=funcionario.dependencia,
             registro_foro=registro_foro.registro if registro_foro else None,

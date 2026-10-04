@@ -20,6 +20,12 @@ URL_CONSULTA = "https://app.funcionjudicial.gob.ec/ForoAbogados/Login/frmCheckCo
 SELECTOR_INPUT_CEDULA = "#CEDULA"
 SELECTOR_BOTON_ACEPTAR = "#btnValidarReg"
 
+# Campos del resultado (ids del formulario real de Función Judicial)
+SELECTOR_EMAIL = "#EMAIL"
+SELECTOR_CELULAR = "#CELULAR"
+SELECTOR_NOMBRES = "#NOMBRES"
+SELECTOR_APELLIDOS = "#APELLIDOS"
+
 # Selectores de resultados (la respuesta puede variar)
 SELECTOR_TABLA_RESULTADOS = "table"
 SELECTOR_FILAS_RESULTADOS = "table tbody tr"

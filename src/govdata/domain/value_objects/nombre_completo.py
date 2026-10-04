@@ -18,16 +18,16 @@ alcance del Modulo 1.
 from __future__ import annotations
 
 import re
-import unicodedata
 from dataclasses import dataclass
 
 from govdata.domain.exceptions.domain_exceptions import ValorInvalidoError
+from govdata.domain.rules.texto_humano import reparar_texto_humano
 
 
 def _normalizar_texto(texto: str) -> str:
-    sin_tildes = unicodedata.normalize("NFKD", texto)
-    sin_tildes = "".join(c for c in sin_tildes if not unicodedata.combining(c))
-    sin_puntuacion = re.sub(r"[.,;:]", " ", sin_tildes)
+    # La huella elimina tildes por separado; aqui se conserva la grafia que
+    # ve el usuario y que se envia a las fuentes externas.
+    sin_puntuacion = re.sub(r"[.,;:]", " ", reparar_texto_humano(texto))
     colapsado = re.sub(r"\s+", " ", sin_puntuacion).strip()
     return colapsado.upper()
 

@@ -2,7 +2,12 @@ from govdata.application.dto.identificacion_cedula_dto import (
     CedulaCandidateDTO,
     EstadoMatchingCedula,
 )
-from govdata.domain.rules.matching_cedula import hacer_matching_cedula, normalizar_nombre
+from govdata.domain.rules.matching_cedula import (
+    candidato_desde_fila_fuente,
+    extraer_cedula,
+    hacer_matching_cedula,
+    normalizar_nombre,
+)
 
 
 def candidato(nombres: str, paterno: str = "AGUILAR", materno: str = "AGUAY") -> CedulaCandidateDTO:
@@ -27,3 +32,16 @@ def test_no_selecciona_dos_coincidencias_exacto() -> None:
 
 def test_sin_candidatos_es_no_cedula_found() -> None:
     assert hacer_matching_cedula("A", "B", []).estado == EstadoMatchingCedula.NO_CEDULA_FOUND
+
+
+def test_extrae_cedula_sin_separadores() -> None:
+    assert extraer_cedula("010-123456-7") == "0101234567"
+    assert extraer_cedula("Cédula") is None
+
+
+def test_candidato_desde_fila_fuente() -> None:
+    fila = candidato_desde_fila_fuente("0102030405", "AYALA SANTI DEXI VIRGINIA")
+    assert fila is not None
+    assert fila.cedula == "0102030405"
+    assert fila.nombres == "DEXI VIRGINIA"
+    assert fila.apellido_paterno == "AYALA SANTI"

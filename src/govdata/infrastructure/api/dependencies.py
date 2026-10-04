@@ -15,12 +15,13 @@ from collections.abc import Iterator
 from functools import lru_cache
 from typing import Annotated
 
-from fastapi import Depends, Header, HTTPException, Query, status
+from fastapi import Cookie, Depends, Header, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from govdata.application.services.govdata_pipeline_orchestrator import GovDataPipelineOrchestrator
 from govdata.config.container import Container
 from govdata.config.settings import ApiSettings, Settings, get_settings
+from govdata.infrastructure.api.auth import leer_token
 
 
 @lru_cache(maxsize=1)
@@ -64,6 +65,22 @@ def verificar_api_key(
         return
     if x_api_key is None or x_api_key != api_settings.api_key.get_secret_value():
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="API key invalida o ausente")
+
+
+def requerir_sesion(
+    settings: Annotated[Settings, Depends(get_settings_dep)],
+    dataok_session: str | None = Cookie(default=None),
+) -> None:
+    """Protege los datos cuando el acceso compartido está activo."""
+    acceso = settings.acceso
+    # Solo desarrollo puede deshabilitar el acceso; producción permanece protegida.
+    if not settings.acceso_requerido:
+        return
+    if not (acceso.usuario and acceso.clave_hash.get_secret_value() and acceso.secreto.get_secret_value()):
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="El acceso no está configurado.")
+    usuario = leer_token(dataok_session, acceso.secreto.get_secret_value())
+    if usuario != acceso.usuario:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Inicia sesión para continuar.")
 
 
 class ParametrosPaginacion:

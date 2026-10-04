@@ -231,6 +231,21 @@ class TestFlujoCompletoConCambios:
         assert resultado.comparacion is not None
         assert len(resultado.comparacion.nuevos) == 1
 
+    def test_reutiliza_documento_ya_descargado_sin_reclamarlo_de_nuevo(self) -> None:
+        resultado_descubrimiento = ResultadoDescubrimientoEntidadDTO(
+            entidad=_entidad(), publicacion=_publicacion(), documento=_doc_descargado(), exito=True
+        )
+        descarga = FakeDescargaPort()
+        servicio, _verificacion_repo, *_ = _construir_servicio(
+            FakeDescubrimientoPort(resultado_descubrimiento), descarga,
+            FakeExtraccionPort(_resultado_extraccion()), FakeVerificacionRemota(hay_cambios=True),
+        )
+
+        resultado = servicio.monitorear(_entidad())
+
+        assert resultado.hubo_cambio is True
+        assert descarga.llamadas == 0
+
 
 class TestMonitorearMasiva:
     def test_reutiliza_monitorear_por_cada_entidad(self) -> None:

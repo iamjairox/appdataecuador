@@ -42,8 +42,11 @@ class TestClasificarFuncionario:
         assert resultado is not None
         assert resultado.area == "financiera"
 
-    def test_cargo_no_relevante_se_descarta(self) -> None:
-        assert clasificar_funcionario(_fila("Chofer"), _reglas()) is None
+    def test_cargo_no_especializado_se_conserva_como_general(self) -> None:
+        resultado = clasificar_funcionario(_fila("Chofer"), _reglas())
+        assert resultado is not None
+        assert resultado.area == "general"
+        assert resultado.motivo_clasificacion == MotivoClasificacion.SIN_AREA_ESPECIALIZADA
 
     def test_cargo_vacio_se_descarta(self) -> None:
         assert clasificar_funcionario(_fila(""), _reglas()) is None
@@ -57,7 +60,8 @@ class TestClasificarFuncionario:
 
     def test_umbral_configurable_mas_estricto_rechaza(self) -> None:
         resultado = clasificar_funcionario(_fila("Asesor Legal Junior"), _reglas(umbral=99.0))
-        assert resultado is None
+        assert resultado is not None
+        assert resultado.area == "general"
 
     def test_umbral_configurable_mas_laxo_acepta(self) -> None:
         resultado = clasificar_funcionario(_fila("Abogado"), _reglas(umbral=10.0))

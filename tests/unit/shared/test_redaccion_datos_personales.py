@@ -14,9 +14,9 @@ from __future__ import annotations
 import pytest
 
 from govdata.shared.security.redaccion_datos_personales import (
+    contiene_cedula,
     redactar_cedulas,
     sanitizar_error_externo,
-    contiene_cedula,
     validar_sin_cedula,
 )
 

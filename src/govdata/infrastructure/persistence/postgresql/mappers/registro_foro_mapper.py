@@ -12,7 +12,8 @@ def a_dominio(modelo: RegistroForoModel) -> RegistroForo:
     return RegistroForo(
         id=modelo.id, persona_master_id=modelo.persona_master_id, clave_registro=modelo.clave_registro,
         nombre_completo=modelo.nombre_completo, registro=modelo.registro, provincia=modelo.provincia,
-        estado=modelo.estado, cedula=modelo.cedula, numero_version=modelo.numero_version, vigente=modelo.vigente,
+        estado=modelo.estado, cedula=modelo.cedula, correo_personal=modelo.correo_personal,
+        celular_personal=modelo.celular_personal, numero_version=modelo.numero_version, vigente=modelo.vigente,
         fuente=modelo.fuente, fecha_consulta=modelo.fecha_consulta, nivel_confianza=modelo.nivel_confianza,
         version_fuente=modelo.version_fuente, evidencia=modelo.evidencia, creado_en=modelo.creado_en,
         actualizado_en=modelo.actualizado_en,
@@ -30,6 +31,8 @@ def a_modelo(registro: RegistroForo, modelo: RegistroForoModel | None = None) ->
     modelo.provincia = registro.provincia
     modelo.estado = registro.estado
     modelo.cedula = registro.cedula
+    modelo.correo_personal = registro.correo_personal
+    modelo.celular_personal = registro.celular_personal
     modelo.numero_version = registro.numero_version
     modelo.vigente = registro.vigente
     modelo.fuente = registro.fuente

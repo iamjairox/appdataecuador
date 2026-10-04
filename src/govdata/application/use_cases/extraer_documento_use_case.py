@@ -30,6 +30,7 @@ from govdata.application.dto.resultado_unificado_dto import (
 from govdata.application.ports.funcionario_repository_port import FuncionarioRepositoryPort
 from govdata.application.ports.persona_repository_port import PersonaRepositoryPort
 from govdata.application.services.parser_factory import ParserFactory
+from govdata.application.services.progreso_listado_service import progreso_listados
 from govdata.config.logging_config import get_logger
 from govdata.domain.entities.documento import DocumentoTransparencia
 from govdata.domain.entities.entidad import Entidad
@@ -106,23 +107,28 @@ class ExtraerDocumentoUseCase:
 
         inicio_pipeline = time.perf_counter()
         filas_normalizadas = normalizar_tabla(resultado_parseo.tabla, self._rule_engine.normalizacion)
+        progreso_listados.establecer_total(entidad.id, len(filas_normalizadas))
 
         funcionarios_dto: list[FuncionarioUnificadoDTO] = []
         cantidad_descartados = 0
         cantidad_errores = 0
 
-        for fila in filas_normalizadas:
+        for indice, fila in enumerate(filas_normalizadas, start=1):
             try:
                 resultado_fila = self._procesar_fila(fila, entidad.id, documento.id)
             except GovDataError as exc:
                 cantidad_errores += 1
                 logger.warning("fila_descartada_por_error", documento_id=documento.id, error=str(exc))
-                continue
+            else:
+                if resultado_fila is None:
+                    cantidad_descartados += 1
+                else:
+                    funcionarios_dto.append(resultado_fila)
 
-            if resultado_fila is None:
-                cantidad_descartados += 1
-                continue
-            funcionarios_dto.append(resultado_fila)
+            # Publica avance real cada 50 filas para no convertir el
+            # seguimiento en otra carga relevante sobre la aplicación.
+            if indice % 50 == 0 or indice == len(filas_normalizadas):
+                progreso_listados.actualizar(entidad.id, indice, len(funcionarios_dto))
 
         duracion_pipeline = time.perf_counter() - inicio_pipeline
         logger.info(
@@ -170,12 +176,16 @@ class ExtraerDocumentoUseCase:
 
         persona = self._buscar_o_crear_persona(fila, fingerprint, fingerprint_hash)
 
+        # Una reextraccion del mismo documento actualiza la ficha vigente en
+        # vez de crear una segunda fila para la misma persona y entidad.
+        existente = self._funcionario_repository.buscar_vigente(persona.id, entidad_id)  # type: ignore[arg-type]
         funcionario = Funcionario(
             persona_id=persona.id,  # type: ignore[arg-type]
             entidad_id=entidad_id,
             cargo=Cargo(fila.cargo or clasificado.cargo_normalizado),
             dependencia=fila.dependencia or _DEPENDENCIA_DESCONOCIDA,
             area_clasificada=AreaRelevante(clasificado.area),
+            id=existente.id if existente else None,
             score_clasificacion=clasificado.score,
             documento_id=documento_id,
         )
@@ -209,9 +219,10 @@ class ExtraerDocumentoUseCase:
                 nombre_completo=NombreCompleto(nombres=fila.nombres, apellidos=fila.apellidos),
                 correo=correo,
                 telefono=telefono,
+                extension_telefonica=fila.extension_telefonica,
                 fingerprint=fingerprint,
                 fingerprint_hash=fingerprint_hash,
             )
         else:
-            persona.actualizar_datos_contacto(correo, telefono)
+            persona.actualizar_datos_contacto(correo, telefono, fila.extension_telefonica)
         return self._persona_repository.guardar(persona)

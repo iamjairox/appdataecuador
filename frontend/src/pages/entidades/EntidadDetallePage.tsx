@@ -4,7 +4,6 @@ import { useEntidad } from '../../hooks/useEntidades'
 import { PageHeader, Spinner, Badge, LinkButton } from '../../components/ui'
 import { ErrorState } from '../../components/ErrorState'
 import { EntidadSubnav } from '../../components/EntidadSubnav'
-import { FuncionariosDeEntidadSection } from './FuncionariosDeEntidadSection'
 
 export function EntidadDetallePage() {
   const { entidadId } = useParams<{ entidadId: string }>()
@@ -21,10 +20,10 @@ export function EntidadDetallePage() {
     <>
       <PageHeader
         title={e.nombre}
-        description="Detalle de la entidad y sus funcionarios vigentes."
+        description="Información de referencia de la entidad."
         actions={
           <LinkButton to={`/entidades/${id}/consulta`} icon={<PlayCircle className="size-4" aria-hidden="true" />}>
-            Consultar entidad
+            Abrir consulta controlada
           </LinkButton>
         }
       />
@@ -67,8 +66,6 @@ export function EntidadDetallePage() {
           <dd className="mt-1 text-sm text-slate-800">{e.ultima_actualizacion ?? '—'}</dd>
         </div>
       </dl>
-
-      {id !== undefined && <FuncionariosDeEntidadSection entidadId={id} />}
     </>
   )
 }

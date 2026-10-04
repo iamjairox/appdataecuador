@@ -22,6 +22,7 @@ class FilaExtraidaDTO:
     dependencia: str
     correo: str | None = None
     telefono: str | None = None
+    extension_telefonica: str | None = None
     cedula: str | None = None
     nombre_completo_original: str | None = None
     """Texto tal como vino en una columna combinada ("Apellidos y

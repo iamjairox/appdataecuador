@@ -16,6 +16,8 @@ export interface Funcionario {
   cedula: string | null
   correo: string | null
   telefono: string | null
+  /** Columna "Extensión telefónica" del numeral 2 DPE. */
+  extension_telefonica?: string | null
   cargo: string
   dependencia: string
   area: string
@@ -34,10 +36,10 @@ export interface Funcionario {
 export type FormatoExportacion = 'csv' | 'json'
 
 /**
- * `AreaRelevante` real (Módulo 4/10, dominio) -- únicos dos valores que
- * acepta el filtro `area`. No existen más áreas en el backend.
+ * `AreaRelevante` real (Módulo 4/10, dominio). `general` identifica los
+ * contactos institucionales sin clasificación jurídica o financiera.
  */
-export type AreaFuncionario = 'juridica' | 'financiera'
+export type AreaFuncionario = 'juridica' | 'financiera' | 'general'
 
 /**
  * Filtros REALES de `GET /entidades/{id}/funcionarios`
@@ -48,7 +50,7 @@ export type AreaFuncionario = 'juridica' | 'financiera'
  *   (substring, sin distinguir mayúsculas) sobre columnas DISTINTAS --
  *   `nombre` solo compara contra `nombres`, nunca contra apellidos.
  * - `cedula`/`telefono`: coincidencia EXACTA.
- * - `area`: coincidencia EXACTA, solo `'juridica' | 'financiera'`.
+ * - `area`: coincidencia EXACTA por área.
  * - `solo_vigentes`: `true` (default) filtra `fecha_fin IS NULL`; `false`
  *   quita ese filtro (devuelve vigentes Y no vigentes) -- el backend NO
  *   tiene un modo "solo no vigentes", no inventar esa tercera opción.
@@ -79,11 +81,26 @@ export interface FuncionarioConsolidado {
   cedula: string | null
   correo: string | null
   telefono: string | null
+  /** Columna "Extensión telefónica" del numeral 2 DPE. */
+  extension_telefonica?: string | null
   celular: string | null
+  correo_personal: string | null
   cargo: string | null
   dependencia: string | null
   registro_foro: string | null
   estado_foro: string | null
   provincia_foro: string | null
   fecha_consulta: string | null
+  estado_consulta_externa?: string | null
+}
+
+/** Funcionario cuyo Foro ya fue consultado y quedó persistido. */
+export interface FuncionarioConsultado extends Funcionario {
+  registro_foro: string | null
+  estado_foro: string | null
+  provincia_foro: string | null
+  correo_personal: string | null
+  celular_personal: string | null
+  fecha_consulta: string | null
+  estado_consulta_externa?: string | null
 }

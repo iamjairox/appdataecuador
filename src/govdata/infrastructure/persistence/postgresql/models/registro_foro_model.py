@@ -30,6 +30,8 @@ class RegistroForoModel(Base):
         Enum(EstadoRegistroForo, name="estado_registro_foro_enum", values_callable=lambda e: [x.value for x in e]), nullable=False, default=EstadoRegistroForo.DESCONOCIDO,
     )
     cedula: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    correo_personal: Mapped[str | None] = mapped_column(String(320), nullable=True)
+    celular_personal: Mapped[str | None] = mapped_column(String(30), nullable=True)
     numero_version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     vigente: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     fuente: Mapped[str] = mapped_column(String(50), nullable=False, default="foro_abogados")

@@ -148,7 +148,12 @@ class TestEjecutar:
 
     def test_filtra_solo_funcionarios_del_area_juridica(self) -> None:
         senescyt = FakeSenescytPort([[PersonaAcademicaDTO(titulo="Abogado", nivel="Tercer Nivel", institucion="UCE")]])
-        foro = FakeForoAbogadosPort([[RegistroForoDTO(registro="R1", provincia="Pichincha", estado="Vigente")]])
+        foro = FakeForoAbogadosPort([[
+            RegistroForoDTO(
+                registro="R1", provincia="Pichincha", estado="Vigente",
+                correo="juan.perez@ejemplo.com", celular="0991234567",
+            )
+        ]])
         caso_uso, entidad_repo, funcionario_repo, persona_repo = _entorno(senescyt, foro)
         entidad = _entidad(entidad_repo)
 
@@ -174,6 +179,8 @@ class TestEjecutar:
         assert resultado.funcionarios[0].cedula == "0999999999"
         assert resultado.funcionarios[0].registro_foro == "R1"
         assert resultado.funcionarios[0].provincia_foro == "PICHINCHA"  # normalizado (8.3)
+        assert resultado.funcionarios[0].correo_personal == "juan.perez@ejemplo.com"
+        assert resultado.funcionarios[0].celular == "0991234567"
         assert senescyt.llamadas == 1
         assert foro.llamadas == 1
 

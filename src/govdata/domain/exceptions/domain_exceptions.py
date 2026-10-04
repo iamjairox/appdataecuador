@@ -177,6 +177,11 @@ class ResolucionIdentidadFallidaError(GovDataError):
     completar la resolucion (ej. senales insuficientes)."""
 
 
+class FuenteCedulaNoDisponibleError(GovDataError):
+    """La fuente publica de consulta de cedula no pudo usarse (bloqueo
+    anti-bot, error de red o DOM no operable). Transitorio."""
+
+
 class EnriquecimientoFallidoError(GovDataError):
     """El pipeline de Enriquecimiento (Submodulo 6.7) no pudo completarse
     para una Persona."""

@@ -84,6 +84,9 @@ class PlaywrightSettings(BaseSettings):
 class ScrapingSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="SCRAPING_", extra="ignore")
 
+    rechazar_captcha_antibot: bool = False
+    """Rechazar consultas al detectar CAPTCHA o challenge antes de extraer datos."""
+
     url_base_dpe: str = "https://transparencia.dpe.gob.ec/entidades"
     url_origen_dpe: str = "https://transparencia.dpe.gob.ec"
     concurrencia_maxima: int = 4
@@ -168,6 +171,22 @@ class ApiSettings(BaseSettings):
         return bool(self.api_key.get_secret_value())
 
 
+class AccessSettings(BaseSettings):
+    """Cuenta compartida para la primera publicación de DataOK."""
+
+    model_config = SettingsConfigDict(env_prefix="ACCESS_", extra="ignore")
+
+    enabled: bool = False
+    usuario: str = ""
+    clave_hash: SecretStr = SecretStr("")
+    secreto: SecretStr = SecretStr("")
+    duracion_horas: int = 12
+
+    @property
+    def requerido(self) -> bool:
+        return self.enabled
+
+
 class Settings(BaseSettings):
     """Configuracion raiz de la aplicacion."""
 
@@ -185,9 +204,15 @@ class Settings(BaseSettings):
     download: DownloadSettings = Field(default_factory=DownloadSettings)
     storage: StorageSettings = Field(default_factory=StorageSettings)
     api: ApiSettings = Field(default_factory=ApiSettings)
+    acceso: AccessSettings = Field(default_factory=AccessSettings)
 
     def es_produccion(self) -> bool:
         return self.app_env == "production"
+
+    @property
+    def acceso_requerido(self) -> bool:
+        """En producción nunca se permite publicar la API sin acceso."""
+        return self.es_produccion() or self.acceso.requerido
 
 
 def _resolver_archivo_env(app_env: str) -> Path | None:
@@ -235,6 +260,7 @@ def get_settings() -> Settings:
         scraping=ScrapingSettings(**kwargs_env_file),
         logging=LoggingSettings(**kwargs_env_file),
         api=ApiSettings(**kwargs_env_file),
+        acceso=AccessSettings(**kwargs_env_file),
     )
 
 

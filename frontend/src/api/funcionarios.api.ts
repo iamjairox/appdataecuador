@@ -7,6 +7,17 @@ import type {
   VersionHistorial,
 } from '../types'
 
+export type RegistroForo = {
+  nombre_completo?: string | null
+  registro?: string | null
+  estado?: string | null
+  provincia?: string | null
+  correo?: string | null
+  celular?: string | null
+}
+
+export type PerfilForo = { registros?: RegistroForo[] }
+
 /**
  * `GET /api/v1/funcionarios/{persona_master_id}` -- perfil consolidado
  * (persona/transparencia/senescyt/foro). NO existe `/perfil` como sufijo.
@@ -34,26 +45,41 @@ export function obtenerAcademicoFuncionario(personaMasterId: number) {
 /** `GET /api/v1/funcionarios/{id}/foro` -- recorte `.foro` del perfil consolidado. */
 export function obtenerForoFuncionario(personaMasterId: number) {
   return apiClient
-    .get<Record<string, unknown>>(`/api/v1/funcionarios/${personaMasterId}/foro`)
+    .get<PerfilForo>(`/api/v1/funcionarios/${personaMasterId}/foro`)
     .then((r) => r.data)
+}
+
+export type ResultadoValidacionAbogado = {
+  estado_consulta_externa: 'error' | 'completada' | 'sin_coincidencia'
+  job_id: string
+  estado: string
+  estado_identificacion: string
+  confianza: number
+  institucion: string
+  tipo_institucion?: string
+  provincia?: string
+  mes_transparencia?: string
+  nombre_completo: string
+  cargo: string
+  dependencia: string
+  area_normalizada?: string
+  correo_institucional: string | null
+  telefono_institucional: string | null
+  ciudad: string | null
+  registro_foro: string | null
+  estado_foro: string | null
+  provincia_foro: string | null
+  correo_personal: string | null
+  celular_personal: string | null
+  fuente: string | null
+  fecha_consulta: string | null
+  detalle: string | null
 }
 
 /** Inicia una validación individual y trazable; el job se consulta en `/jobs/{id}`. */
 export function validarAbogado(personaMasterId: number) {
   return apiClient
-    .post<{
-      job_id: string
-      estado: string
-      resultado: {
-        nombre: string
-        puesto: string
-        unidad: string
-        ciudad: string | null
-        telefono: string | null
-        celular: string | null
-        correo: string | null
-      }
-    }>(`/api/v1/funcionarios/${personaMasterId}/validar-abogado`)
+    .post<ResultadoValidacionAbogado>(`/api/v1/funcionarios/${personaMasterId}/validar-abogado`)
     .then((r) => r.data)
 }
 

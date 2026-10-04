@@ -10,6 +10,7 @@ from govdata.domain.rules.reglas_configurables import ReglasNormalizacion
 from govdata.domain.rules.segmentador_nombre import (
     ConfianzaSegmentacion,
     OrdenNombre,
+    detectar_orden_por_contenido,
     detectar_orden_por_encabezado,
     segmentar_nombre_completo,
 )
@@ -99,3 +100,38 @@ class TestNormalizarTablaConOrden:
         fila = normalizar_tabla(tabla, reglas)[0]
         assert fila.nombre_completo_original is None
         assert fila.confianza_segmentacion is None
+
+
+class TestOrdenPorContenido:
+    _PILA = frozenset({"JUAN", "CARLOS", "MARIA", "JOSE", "ANA", "LUIS", "GRECIA", "VICTOR"})
+
+    def test_contenido_nombres_primero_con_encabezado_contrario(self) -> None:
+        """Caso real Zapotillo: encabezado 'Apellidos y Nombres', datos 'Nombre Apellido'."""
+        valores = ["Juan Carlos Perez Gomez", "Maria Jose Lopez Mora", "Ana Lucia Vera Soto",
+                   "Luis Alberto Rios Paz", "Victor Manuel Garcia Maldonado", "Grecia Catarina Moncada Sanchez"]
+        assert detectar_orden_por_contenido(valores, self._PILA) == OrdenNombre.NOMBRES_PRIMERO
+
+    def test_contenido_apellidos_primero(self) -> None:
+        valores = ["Perez Gomez Juan Carlos", "Lopez Mora Maria Jose", "Vera Soto Ana", "Rios Paz Luis", "Garcia Maldonado Victor"]
+        assert detectar_orden_por_contenido(valores, self._PILA) == OrdenNombre.APELLIDOS_PRIMERO
+
+    def test_pocos_votos_no_decide(self) -> None:
+        assert detectar_orden_por_contenido(["Juan Carlos Perez Gomez", "Maria Jose Lopez Mora"], self._PILA) is None
+
+    def test_sin_mayoria_clara_no_decide(self) -> None:
+        valores = ["Juan Perez Gomez", "Maria Lopez Mora", "Ana Vera Soto", "Rios Paz Luis", "Garcia Maldonado Victor", "Mora Soto Jose"]
+        assert detectar_orden_por_contenido(valores, self._PILA) is None
+
+    def test_sin_lista_de_nombres_no_decide(self) -> None:
+        assert detectar_orden_por_contenido(["Juan Carlos Perez Gomez"] * 10, frozenset()) is None
+
+    def test_normalizar_tabla_corrige_encabezado_equivocado(self) -> None:
+        reglas = ReglasNormalizacion(
+            sinonimos_por_campo={"nombre_completo": ["Apellidos y Nombres"]}, nombres_pila=self._PILA
+        )
+        valores = ["Juan Carlos Perez Gomez", "Maria Jose Lopez Mora", "Ana Lucia Vera Soto",
+                   "Luis Alberto Rios Paz", "Grecia Catarina Moncada Sanchez"]
+        tabla = TablaExtraidaDTO(encabezados=("Apellidos y Nombres",), filas=[{"Apellidos y Nombres": v} for v in valores])
+        fila = normalizar_tabla(tabla, reglas)[-1]
+        assert (fila.nombres, fila.apellidos) == ("Grecia Catarina", "Moncada Sanchez")
+        assert fila.orden_nombre == "nombres_primero"

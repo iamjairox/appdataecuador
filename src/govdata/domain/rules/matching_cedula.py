@@ -27,6 +27,31 @@ from govdata.application.dto.identificacion_cedula_dto import (
 )
 
 
+def extraer_cedula(texto: str) -> str | None:
+    """Deja solo dígitos. Filas de encabezado u otros textos se descartan."""
+    digitos = re.sub(r"\D+", "", texto)
+    return digitos or None
+
+
+def candidato_desde_fila_fuente(cedula_texto: str, nombre_texto: str) -> CedulaCandidateDTO | None:
+    """Arma un candidato a partir de cédula + nombre completo de una tabla pública."""
+    cedula = extraer_cedula(cedula_texto)
+    nombre = " ".join(nombre_texto.split())
+    if not cedula or not nombre:
+        return None
+    partes = nombre.split()
+    if len(partes) >= 3:
+        apellidos = " ".join(partes[:2])
+        nombres = " ".join(partes[2:])
+    elif len(partes) == 2:
+        apellidos = partes[0]
+        nombres = partes[1]
+    else:
+        apellidos = ""
+        nombres = nombre
+    return CedulaCandidateDTO(cedula=cedula, nombres=nombres, apellido_paterno=apellidos)
+
+
 def normalizar_nombre(valor: str) -> str:
     """Normaliza un nombre para comparación: mayúsculas, sin tildes, sin puntuación."""
     sin_tildes = "".join(

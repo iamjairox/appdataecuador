@@ -20,6 +20,8 @@ class RegistroForoPersistidoDTO:
     provincia: str | None
     estado: str
     cedula: str | None
+    correo_personal: str | None
+    celular_personal: str | None
     numero_version: int
     vigente: bool
     fuente: str
@@ -33,7 +35,8 @@ class RegistroForoPersistidoDTO:
         return cls(
             id=registro.id, persona_master_id=registro.persona_master_id, clave_registro=registro.clave_registro,
             nombre_completo=registro.nombre_completo, registro=registro.registro, provincia=registro.provincia,
-            estado=registro.estado.value, cedula=registro.cedula, numero_version=registro.numero_version,
+            estado=registro.estado.value, cedula=registro.cedula, correo_personal=registro.correo_personal,
+            celular_personal=registro.celular_personal, numero_version=registro.numero_version,
             vigente=registro.vigente, fuente=registro.fuente, fecha_consulta=registro.fecha_consulta,
             nivel_confianza=registro.nivel_confianza, version_fuente=registro.version_fuente,
             evidencia=registro.evidencia,

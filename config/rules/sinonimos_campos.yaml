@@ -67,9 +67,17 @@ campos:
     - "Telefonos"
     - "Celular"
     - "Numero de Contacto"
-    - "Extension"
     # Plantilla estandar del numeral 2 DPE (mismo motivo que el correo).
     - "Telefono institucional"
+
+  extension_telefonica:
+    - "Extension"
+    - "Extensión"
+    - "Ext"
+    # Encabezado exacto de la plantilla del numeral 2 DPE: "Extension" solo
+    # contra "EXTENSION TELEFONICA" no llega al umbral (62 < 80) y la
+    # extension se perdia en todos los archivos.
+    - "Extension telefonica"
 
   ciudad:
     - "Ciudad"

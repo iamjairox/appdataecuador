@@ -24,6 +24,7 @@ class PersonaModel(Base):
     cedula: Mapped[str | None] = mapped_column(String(20), unique=True, nullable=True)
     correo: Mapped[str | None] = mapped_column(String(320), nullable=True)
     telefono: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    extension_telefonica: Mapped[str | None] = mapped_column(String(20), nullable=True)
     fingerprint: Mapped[str | None] = mapped_column(String(500), nullable=True, index=True)
     fingerprint_hash: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
     creado_en: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

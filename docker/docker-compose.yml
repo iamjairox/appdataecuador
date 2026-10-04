@@ -106,6 +106,23 @@ services:
       - ../logs:/app/logs
       - ../config/rules:/app/config/rules:ro
 
+  monitor-dpe:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    restart: unless-stopped
+    command: ["python", "scripts/programar_monitoreo_dpe.py"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      DB_HOST: postgres
+    volumes:
+      - ../logs:/app/logs
+      - ../data:/app/data
+      - ../config/rules:/app/config/rules:ro
+
 volumes:
   postgres_data:
   redis_data:

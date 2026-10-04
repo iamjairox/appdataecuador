@@ -13,6 +13,7 @@ import { ApiError, type ApiErrorBody } from '../types/error'
 export const apiClient = axios.create({
   baseURL: env.apiUrl,
   timeout: 120_000, // /entidades/{id}/consulta es sincrono y puede tardar
+  withCredentials: true,
 })
 
 apiClient.interceptors.request.use((config) => {
@@ -27,6 +28,9 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError<ApiErrorBody | Blob>) => {
     const status = error.response?.status ?? null
+    if (status === 401 && !error.config?.url?.includes('/auth/')) {
+      window.dispatchEvent(new Event('dataok:sesion-cerrada'))
+    }
     let cuerpo = error.response?.data
 
     // Peticiones con `responseType: 'blob'` (exportaciones) reciben
@@ -52,7 +56,7 @@ apiClient.interceptors.response.use(
     return Promise.reject(
       new ApiError(
         'ERROR_DE_RED',
-        'No fue posible comunicarse con el servidor GovData. Verifica tu conexión.',
+        'No fue posible comunicarse con el servidor DataOK. Verifica tu conexión.',
         null,
         status,
       ),

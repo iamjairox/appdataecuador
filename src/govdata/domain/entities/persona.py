@@ -32,6 +32,7 @@ class Persona:
     cedula: str | None = None
     correo: Correo | None = None
     telefono: Telefono | None = None
+    extension_telefonica: str | None = None
     fingerprint: str | None = None
     """Huella de identidad (Submodulo 4.4, `generador_fingerprint`). Aun
     NO se usa para comparar/fusionar personas -- solo se almacena, como
@@ -50,7 +51,7 @@ class Persona:
             self.cedula = cedula_normalizada or None
 
     def actualizar_datos_contacto(
-        self, correo: Correo | None = None, telefono: Telefono | None = None
+        self, correo: Correo | None = None, telefono: Telefono | None = None, extension_telefonica: str | None = None
     ) -> None:
         """Enriquece los datos de contacto sin perder los existentes.
 
@@ -61,3 +62,5 @@ class Persona:
             self.correo = correo
         if telefono is not None:
             self.telefono = telefono
+        if extension_telefonica:
+            self.extension_telefonica = extension_telefonica.strip()

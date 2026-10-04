@@ -119,7 +119,16 @@ class MonitoreoContinuoService:
                     entidad.id, "hash_remoto_sin_cambios", ahora, documento_anterior.id, documento_anterior.hash_sha256
                 )
 
-        documento_descargado = self._descarga.descargar(documento_descubierto)
+        # El descubrimiento puede devolver el mismo documento que otra
+        # consulta ya descargó. Reutilizarlo evita reclamar de nuevo una
+        # fila en estado DESCARGADO (que antes se reportaba erróneamente
+        # como "reclamada por otro worker") y permite continuar con la
+        # extracción pendiente para cualquier entidad.
+        if documento_descubierto.esta_descargado and documento_descubierto.ruta_almacenamiento:
+            documento_descargado = documento_descubierto
+            logger.info("documento_descargado_reutilizado", documento_id=documento_descargado.id)
+        else:
+            documento_descargado = self._descarga.descargar(documento_descubierto)
 
         if documento_anterior is not None and documento_anterior.hash_sha256 == documento_descargado.hash_sha256:
             return self._sin_cambio(

@@ -23,12 +23,20 @@ como vino); la normalizacion solo se usa para comparar.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from enum import Enum
 
 from govdata.domain.rules.normalizacion import normalizar_texto
 
 _PARTICULAS = frozenset({"DE", "DEL", "LA", "LAS", "LOS", "SAN", "SANTA", "Y", "DA", "DI", "VAN", "VON", "MC"})
+
+MINIMO_VOTOS_ORDEN = 5
+"""Filas que deben votar (primera o ultima palabra es un nombre de pila, y
+la otra no) para que el contenido pueda contradecir al encabezado."""
+
+MAYORIA_ORDEN = 0.7
+"""Proporcion minima de votos a favor de un orden para aceptarlo."""
 
 
 class OrdenNombre(str, Enum):
@@ -60,6 +68,42 @@ def detectar_orden_por_encabezado(encabezado: str) -> OrdenNombre:
     if posicion_apellido is None or posicion_nombre is None:
         return OrdenNombre.DESCONOCIDO
     return OrdenNombre.APELLIDOS_PRIMERO if posicion_apellido < posicion_nombre else OrdenNombre.NOMBRES_PRIMERO
+
+
+def detectar_orden_por_contenido(
+    nombres_completos: Iterable[str],
+    nombres_pila: frozenset[str],
+    minimo_votos: int = MINIMO_VOTOS_ORDEN,
+    mayoria: float = MAYORIA_ORDEN,
+) -> OrdenNombre | None:
+    """Orden real de una columna combinada, votado fila por fila con una
+    lista de nombres de pila: "GRECIA CATARINA MONCADA SANCHEZ" (primera
+    palabra nombre de pila, ultima no) vota NOMBRES_PRIMERO; "PEREZ GOMEZ
+    JUAN CARLOS" vota APELLIDOS_PRIMERO; el resto no vota. Devuelve None
+    si no hay votos suficientes o no hay una mayoria clara -- en ese caso
+    manda el encabezado. Caso real: Zapotillo, encabezado "Apellidos y
+    Nombres" con datos "Nombres Apellidos"."""
+    if not nombres_pila:
+        return None
+    votos_nombres_primero = votos_apellidos_primero = 0
+    for texto in nombres_completos:
+        palabras = normalizar_texto(texto).split()
+        if len(palabras) < 3:
+            continue
+        primera_es_nombre = palabras[0] in nombres_pila
+        ultima_es_nombre = palabras[-1] in nombres_pila
+        if primera_es_nombre and not ultima_es_nombre:
+            votos_nombres_primero += 1
+        elif ultima_es_nombre and not primera_es_nombre:
+            votos_apellidos_primero += 1
+    total = votos_nombres_primero + votos_apellidos_primero
+    if total < minimo_votos:
+        return None
+    if votos_nombres_primero / total >= mayoria:
+        return OrdenNombre.NOMBRES_PRIMERO
+    if votos_apellidos_primero / total >= mayoria:
+        return OrdenNombre.APELLIDOS_PRIMERO
+    return None
 
 
 def _unidades(texto: str) -> tuple[list[str], bool]:

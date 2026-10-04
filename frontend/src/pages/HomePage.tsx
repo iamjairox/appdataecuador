@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { AlertTriangle, Building2, ListChecks, PlayCircle, Users } from 'lucide-react'
+import { Building2, PlayCircle, Scale } from 'lucide-react'
 import { useEntidades } from '../hooks/useEntidades'
-import { PageHeader, Alert, Spinner, StatCard, Badge, LinkButton } from '../components/ui'
+import { PageHeader, Spinner, StatCard, Badge, LinkButton } from '../components/ui'
 import { Card, CardBody } from '../components/ui/Card'
 import { ErrorState } from '../components/ErrorState'
 
@@ -14,22 +14,16 @@ const ACCESOS = [
     descripcion: 'Buscar una entidad pública y consultar sus funcionarios.',
   },
   {
-    to: '/funcionarios',
-    icon: Users,
-    titulo: 'Funcionarios',
-    descripcion: 'Abrir el perfil consolidado de un funcionario por su ID.',
+    to: '/abogados-ecuador',
+    icon: Scale,
+    titulo: 'Abogados del Ecuador',
+    descripcion: 'Buscar abogados, elegir una coincidencia y consultar su ficha individual.',
   },
   {
-    to: '/alertas',
-    icon: AlertTriangle,
-    titulo: 'Alertas',
-    descripcion: 'Ver alertas detectadas, por entidad o por funcionario.',
-  },
-  {
-    to: '/jobs',
-    icon: ListChecks,
-    titulo: 'Trabajos',
-    descripcion: 'Revisar el estado de un trabajo de consulta por su ID.',
+    to: '/companias',
+    icon: Building2,
+    titulo: 'Compañías',
+    descripcion: 'Consultar empresas, representantes legales y su información persistida.',
   },
 ]
 
@@ -61,8 +55,8 @@ export function HomePage() {
   return (
     <>
       <PageHeader
-        title="GovData Intelligence Platform"
-        description="Consulta y consolidación de datos de personal del sector público ecuatoriano."
+        title="DataOK"
+        description="Inteligencia y verificación de datos del sector público ecuatoriano."
       />
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -71,13 +65,6 @@ export function HomePage() {
           value={entidades.isPending ? <Spinner label="" className="text-slate-300" /> : (entidades.data?.total ?? '—')}
         />
       </div>
-
-      <Alert tone="info">
-        GovData no expone estadísticas globales de funcionarios jurídicos, alertas ni cambios -- esos
-        indicadores se consultan por entidad (pestañas <span className="font-medium">Alertas</span> y{' '}
-        <span className="font-medium">Cambios</span> en el detalle de cada una) para no simular un dato que
-        el backend no calcula.
-      </Alert>
 
       {entidades.isError && <ErrorState error={entidades.error} title="No se pudieron cargar las entidades" />}
 

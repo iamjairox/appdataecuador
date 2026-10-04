@@ -79,17 +79,19 @@ class ConsultaService:
 
     # -- Submodulo 4.5: consulta individual --------------------------------
 
-    def consultar_entidad(self, entidad: Entidad) -> ResultadoUnificadoDTO:
+    def consultar_entidad(self, entidad: Entidad, *, forzar_reextraccion: bool = False) -> ResultadoUnificadoDTO:
         job = self._job_manager.crear_job(TipoJob.CONSULTA_INDIVIDUAL, entidad_id=entidad.id)
         try:
-            resultado = self._ejecutar_pipeline(entidad, job)
+            resultado = self._ejecutar_pipeline(entidad, job, forzar_reextraccion=forzar_reextraccion)
             self._job_manager.finalizar(job)
             return resultado
         except GovDataError as exc:
             self._job_manager.marcar_error(job, str(exc))
             raise
 
-    def _ejecutar_pipeline(self, entidad: Entidad, job: Job) -> ResultadoUnificadoDTO:
+    def _ejecutar_pipeline(
+        self, entidad: Entidad, job: Job, *, forzar_reextraccion: bool = False
+    ) -> ResultadoUnificadoDTO:
         self._job_manager.transicionar(job, JobStatus.DESCUBRIENDO)
         resultado_descubrimiento = self._descubrimiento.descubrir(entidad)
         if not resultado_descubrimiento.exito or resultado_descubrimiento.publicacion is None:
@@ -105,15 +107,19 @@ class ConsultaService:
             )
 
         decision_cache = self._cache_service.evaluar_entidad(entidad.id, publicacion.mes_publicado)  # type: ignore[arg-type]
-        if decision_cache.vigente and decision_cache.documento is not None:
+        if not forzar_reextraccion and decision_cache.vigente and decision_cache.documento is not None:
             logger.info("consulta_servida_desde_cache", entidad=entidad.nombre, motivo=decision_cache.motivo)
             self._job_manager.transicionar(job, JobStatus.GUARDANDO, mensaje="cache_vigente")
             return self._construir_desde_persistencia(entidad, decision_cache.documento, publicacion.mes_publicado)
 
-        self._job_manager.transicionar(job, JobStatus.DESCARGANDO)
-        documento = self._descarga.descargar(documento)
+        # Un archivo ya descargado es reutilizable tanto en una consulta
+        # normal como en una reextracción forzada. Volver a reclamarlo causa
+        # un falso conflicto de worker y evita llegar a la extracción.
+        if not (documento.esta_descargado and documento.ruta_almacenamiento):
+            self._job_manager.transicionar(job, JobStatus.DESCARGANDO)
+            documento = self._descarga.descargar(documento)
 
-        if not self._cache_service.requiere_reextraccion(documento.id):  # type: ignore[arg-type]
+        if not forzar_reextraccion and not self._cache_service.requiere_reextraccion(documento.id):  # type: ignore[arg-type]
             logger.info("extraccion_ya_vigente_para_version_actual", entidad=entidad.nombre, version=documento.version)
             self._job_manager.transicionar(job, JobStatus.GUARDANDO, mensaje="extraccion_ya_vigente")
             return self._construir_desde_persistencia(entidad, documento, publicacion.mes_publicado)

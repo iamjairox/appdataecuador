@@ -102,23 +102,19 @@ export function EntidadesListPage() {
 
       {data && data.items.length > 0 && (
         <>
-          <Table>
+          <Table className="min-w-0 table-fixed">
+            <colgroup><col/><col className="w-32 sm:w-48"/><col className="w-32 sm:w-40"/></colgroup>
             <Thead>
               <Tr>
                 <Th>Entidad</Th>
-                <Th>Tipo</Th>
-                <Th>Estado</Th>
-                <Th>Última publicación</Th>
-                <Th>Última actualización</Th>
-                <Th>
-                  <span className="sr-only">Acciones</span>
-                </Th>
+                <Th className="px-2 sm:px-4">Tipo y estado</Th>
+                <Th className="px-2 sm:px-4">Acción</Th>
               </Tr>
             </Thead>
             <Tbody>
               {data.items.map((entidad) => (
                 <Tr key={entidad.id}>
-                  <Td>
+                  <Td className="break-words">
                     <Link
                       to={`/entidades/${entidad.id}`}
                       className="font-medium text-slate-900 hover:underline"
@@ -126,25 +122,19 @@ export function EntidadesListPage() {
                       {entidad.nombre}
                     </Link>
                   </Td>
-                  <Td>{entidad.tipo ?? '—'}</Td>
-                  <Td>
+                  <Td className="px-2 text-xs sm:px-4 sm:text-sm">
+                    <span className="block break-words">{entidad.tipo ?? '—'}</span>
                     <Badge tone={entidad.estado === 'activa' ? 'success' : 'neutral'}>{entidad.estado}</Badge>
                   </Td>
-                  <Td>{entidad.ultima_publicacion ?? '—'}</Td>
-                  <Td>{entidad.ultima_actualizacion ?? '—'}</Td>
-                  <Td>
-                    <div className="flex items-center justify-end gap-1">
-                      <LinkButton to={`/entidades/${entidad.id}`} variant="ghost" size="sm">
-                        Ver detalle
-                      </LinkButton>
-                      <LinkButton
-                        to={`/entidades/${entidad.id}/consulta`}
-                        size="sm"
-                        icon={<PlayCircle className="size-4" aria-hidden="true" />}
-                      >
-                        Consultar
-                      </LinkButton>
-                    </div>
+                  <Td className="px-2 sm:px-4">
+                    <LinkButton
+                      to={`/entidades/${entidad.id}/consulta`}
+                      className="w-full justify-center whitespace-normal text-center leading-4"
+                      size="sm"
+                      icon={<PlayCircle className="size-4" aria-hidden="true" />}
+                    >
+                      Consultar
+                    </LinkButton>
                   </Td>
                 </Tr>
               ))}

@@ -9,6 +9,17 @@ nadie mas importa directamente podria quedar fuera del metadata.
 from govdata.infrastructure.persistence.postgresql.models.alerta_academica_model import (
     AlertaAcademicaModel,
 )
+from govdata.infrastructure.persistence.postgresql.models.abogado_ecuador_model import (
+    AbogadoEcuadorModel,
+)
+from govdata.infrastructure.persistence.postgresql.models.directorio_profesional_derecho_model import (
+    DirectorioProfesionalDerechoModel,
+    EstadoDirectorioProfesionalesModel,
+)
+from govdata.infrastructure.persistence.postgresql.models.compania_model import (
+    CompaniaModel,
+    RepresentanteCompaniaModel,
+)
 from govdata.infrastructure.persistence.postgresql.models.alerta_foro_model import AlertaForoModel
 from govdata.infrastructure.persistence.postgresql.models.alerta_model import AlertaModel
 from govdata.infrastructure.persistence.postgresql.models.alerta_perfil_model import (
@@ -96,6 +107,11 @@ from govdata.infrastructure.persistence.postgresql.models.version_funcionario_mo
 
 __all__ = [
     "AlertaAcademicaModel",
+    "AbogadoEcuadorModel",
+    "DirectorioProfesionalDerechoModel",
+    "EstadoDirectorioProfesionalesModel",
+    "CompaniaModel",
+    "RepresentanteCompaniaModel",
     "AlertaForoModel",
     "AlertaModel",
     "AlertaPerfilModel",
